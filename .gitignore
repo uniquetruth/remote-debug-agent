@@ -6,6 +6,7 @@ build
 
 .settings
 .project
+bin
 agent/bin
 agent/build
 .classpath
