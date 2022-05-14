@@ -33,7 +33,7 @@ public class SpringSimpleClientVisitor extends ClassVisitor {
 		
 		@Override
 		protected void onMethodEnter() {
-			//把第一个参数headers传出去添加自定义的header
+			//the first parameter is headers
 			mv.visitVarInsn(Opcodes.ALOAD, 1);
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 					"com/github/rdagent/transformer/intercepter/SpringClientIntercepter",

@@ -9,7 +9,7 @@ import com.github.rdagent.transformer.bytecode.SpringSimpleClientVisitor;
 
 public class SpringSimpleClientHandler extends AbstractHandler {
 	
-	//spring-web自己的http客户端，实际用的是java.net.HttpURLConnection，调用微服务接口的传统服务用的是这个类
+	//one of spring-web's http client, use java.net.HttpURLConnection
 	private String springHTTPClient = "org/springframework/http/client/SimpleBufferingClientHttpRequest";
 
 	@Override

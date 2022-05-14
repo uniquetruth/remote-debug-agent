@@ -35,7 +35,7 @@ public class SpringRabbitVisitor extends ClassVisitor {
 		
 		@Override
 		protected void onMethodEnter() {
-			//message queue is asynchronous, no need to get remote ip
+			//message queue is an asynchronous repeater, no need to get remote ip
 			mv.visitLdcInsn(Constants.virtualIp);
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 					"com/github/rdagent/transformer/intercepter/IPmap",

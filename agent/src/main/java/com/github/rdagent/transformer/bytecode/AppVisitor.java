@@ -120,8 +120,8 @@ public class AppVisitor extends ClassVisitor {
 				System.out.println("]");
 			}*/
 			mv.visitCode();
-			// ==============这里在方法开始前，调用AppInterceptor.onMethodIn进行方法级的调用记录，必要时绑定ip==========
-			// 创建Object[]类型的变量os
+			// ==============at the beginning of this method, invoke AppInterceptor.onMethodIn to record==========
+			// new Object[parameters.length]
 			mv.visitIntInsn(Opcodes.BIPUSH, parameters.length);
 			mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
 
@@ -129,20 +129,20 @@ public class AppVisitor extends ClassVisitor {
 			//System.out.println("varNumber = " + oarrayIndex);
 			mv.visitVarInsn(Opcodes.ASTORE, oarrayIndex);
 
-			// 填装参数
+			// put parameters into Object[]
 			installParams(oarrayIndex);
 
 			mv.visitLdcInsn(fullMethodName);
 			mv.visitVarInsn(Opcodes.ALOAD, oarrayIndex);
-			// 调用AppInterceptor.onMethodIn
+			// invoke AppInterceptor.onMethodIn
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 					"com/github/rdagent/transformer/intercepter/AppIntercepter",
 					"onMethodIn",
 					"(Ljava/lang/String;[Ljava/lang/Object;)V", false);
-			// ==============AppInterceptor.onMethodIn调用完毕=======这部分栈高度为4===================
+			// ==============AppInterceptor.onMethodIn over=======stack height is 4===================
 			
-			// =============这里开始代码行级探针的建立，visitCode方法内进行boolean数组的初始化，后续的13个visit(X)insn方法中写入每一行的探针
-			//创建boolean[]类型的变量
+			// =============begin to create probe, in visitCode method, we have to initialize boolean[]
+			//new boolean[], offsetList.size() is code line count in this method
 			if(offsetList.size() > Byte.MAX_VALUE/2) {
 				mv.visitIntInsn(Opcodes.SIPUSH, offsetList.size()*2);
 			}else {
@@ -151,9 +151,9 @@ public class AppVisitor extends ClassVisitor {
 	        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN);
 	        barrayIndex = lvs.newLocal(Type.getObjectType("[Z"));
 	        mv.visitVarInsn(Opcodes.ASTORE, barrayIndex);
-	        //对于只有一个指令的行，需要事先把行尾探针置为true
+	        //For the line that only has one instruction, need to set probe[endPointer]=true
 	        for(int i=0;i<offsetList.size();i++) {
-	        	if(offsetList.get(i)==1 && methodLines.get(i)>0) { //顺序执行代码块的单指令行不处理
+	        	if(offsetList.get(i)==1 && methodLines.get(i)>0) { //ignore sequential block
 	        		int endPointer = i * 2 + 1;
 	        		mv.visitVarInsn(Opcodes.ALOAD, barrayIndex);
 	        		if(endPointer > Byte.MAX_VALUE) {
@@ -161,45 +161,46 @@ public class AppVisitor extends ClassVisitor {
 	        		}else {
 	        			mv.visitIntInsn(Opcodes.BIPUSH, endPointer);
 	        		}
-	        		mv.visitInsn(Opcodes.ICONST_1); //赋值true等同于int 1入栈
+	        		mv.visitInsn(Opcodes.ICONST_1); //boolean true equals int 1 in bytecode
 	        		mv.visitInsn(Opcodes.BASTORE);
 	        	}
 	        }
-			// ==============探针初始化完毕===========这部分栈高度为4=====================
+			// ==============probe createing over===========max stack = 4=====================
 	        
-	        //==============给整个方法套上try-catch，方法开始前加入try，visitMaxs是方法（文本上的）最后，在那里加catch======================
-	        //构造方法因为有默认的super指令在里面，没法整体try-catch，虽然有办法在super后面加，但是可能比较麻烦，考虑到构造方法抛异常的可能性较低，先暂时忽略这种情况
+	        //==============add try-catch to the whole method. here add try, in visitMaxs add catch======================
+	        //construct method is a little different, there is a default super instruction, can't be surrounded by try-catch
+	        //though we can add try after super instruction, it's quite a complicate job. So I decide to ignore <init> for now
 	        if(!methodName.equals("<init>")) {
 	        	mv.visitLabel(from);
 	        }
-	        //==========try语句块编写完毕===============不是指令块，不占用栈高度==========================
+	        //==========try over===============it's not a instruction, no effect to stack height==========================
 	        
-	        //整体栈高度用以上3块的最大值
 	        //maxStack = 4;
 		}
 		
+		//write value to probe in following 13 visit(X)insn methods
 		public void visitInsn(int opcode) {
-			//可能有其它动态框架插入的指令，造成了“异常”结构的class，这些class具有javac正常编译下不可能生成的结构，但可以正常运行
-			//asm在处理正常javac编译的class时，总是先访问visitLineNumber，后访问visitInsn，但asm官方文档也不保证总是这个顺序，所以不要在这些指令位置附加探针
+			//some of classes that is be created by dynamic framework may have a little "extraordinary" structure.
+			//For these classes, asm may call visitInsn before visitLineNumber, so we have to check lineIndex here
 			if(lineIndex == -1) {
 				mv.visitInsn(opcode);
 				return;
 			}
-			//该指令是否是某行的第一个指令：
+			//condition of line start probe. It's the first instruction of a line
 			if(insnOffset==0) {
-				if(methodLines.get(lineIndex)>0 //1、该行有可能造成非顺序执行的指令
-					|| lineIndex==0 //2、该行是该方法的第一行
-					|| methodLines.get(lineIndex-1)>0 //3、该行是顺序执行代码块的第一行
-					|| jumpDestination) { //4、该行是一个跳转目的地
+				if(methodLines.get(lineIndex)>0 //1. this line contains "jump" instruction
+					|| lineIndex==0 //2. this is the first line of a method
+					|| methodLines.get(lineIndex-1)>0 //3. this is the first line of a sequential block
+					|| jumpDestination) { //4. this line is a jumping destination
 					writeStartProbe(opcode);
 				}
-			//在行尾写入探针的条件：
-			}else if((insnOffset+1)==offsetList.get(lineIndex) //1、该指令是某行的最后一个指令
-					&& methodLines.get(lineIndex)>0){ //2、该行有可能造成非顺序执行的指令
+			//condition of line end probe
+			}else if((insnOffset+1)==offsetList.get(lineIndex) //1. It's the last instruction of a line
+					&& methodLines.get(lineIndex)>0){ //2. this line contains "jump" instruction
 				writeEndProbe(opcode);
 			}
 	    	insnOffset++;
-	    	//方法退出前的注入(Opcodes.ATHROW前不拦截了，交给每个方法统一的try-catch块拦截)
+	    	//before returning (don't process Opcodes.ATHROW, try-catch block to do it)
 	    	//if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) || opcode == Opcodes.ATHROW) {
 	    	if (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) {
 	    		if(opcode == Opcodes.RETURN) {
@@ -242,12 +243,6 @@ public class AppVisitor extends ClassVisitor {
 						"onMethodOut",
 						"(Ljava/lang/Object;Ljava/lang/String;[Z)V",
 						false);
-				//有一些动态生成的类不支持compute_frame
-				/*if(aa.stack==null) {
-					maxStack = Math.max(4, maxStack);
-				}else {
-					maxStack = Math.max(aa.stack.size() + 4, maxStack);
-				}*/
 	    	}
 	    	//System.out.println("visitInsn : opcode="+opcode);
 	    	mv.visitInsn(opcode);
@@ -470,7 +465,7 @@ public class AppVisitor extends ClassVisitor {
 	    }
 	    
 	    public void visitLineNumber(int line, Label start) {
-	    	//每访问一次这个方法，表示一行新的代码开始
+	    	//if this method be called, means a new code line begins
 	    	insnOffset = 0;
 	    	lineIndex++;
 	    	jumpDestination = false;
@@ -487,13 +482,13 @@ public class AppVisitor extends ClassVisitor {
 	    	}
     		mv.visitInsn(Opcodes.ICONST_1);
     		mv.visitInsn(Opcodes.BASTORE);
-    		//如果探针后面跟的是new指令，可能会导致stack map table entry里的未初始化变量label不匹配
-    		//所以这里需要插入一个新label，并把原label记录下来，后面访问到相应的frame时，用新label替换旧的
+    		//if a new instruction follows a probe, the uninitialized var in stack map table entry may not match to the right label
+    		//so we need to put a new label here, and remember the old one, when we encounter the relative frame, we can replace old label by new's
     		if(opcode == Opcodes.NEW || opcode == Opcodes.NEWARRAY 
 	    			|| opcode == Opcodes.ANEWARRAY || opcode == Opcodes.MULTIANEWARRAY) {
     			Label newLabel = new Label();
     			stackMap.put(lastLabel, newLabel);
-    			//System.out.println("luanfei debug +++ replace "+lastLabel+" to "+newLabel);
+    			//System.out.println("debug +++ replace "+lastLabel+" to "+newLabel);
 	    		mv.visitLabel(newLabel);
 	    	}
 		}
@@ -517,19 +512,19 @@ public class AppVisitor extends ClassVisitor {
 	    	}
 		}
 		
-		// 构造参数值数组Object[]
+		// put parameter into Object[]
 		private void installParams(int oarrayIndex) {
 			int j = 0;
-			// 逐个将方法实参放入object数组中
+			// deal every parameter orderly
 			for (int i = 0; i < parameters.length; i++) {
-				// 数组变量入栈
+				// array pointer into stack
 				mv.visitVarInsn(Opcodes.ALOAD, oarrayIndex);
-				// 下标入栈
+				// index into stack
 				mv.visitIntInsn(Opcodes.BIPUSH, i);
 
 				Type t = parameters[i];
 				String typeName = t.getClassName();
-				// 参数值入栈，java基本类型要转换为引用类型才能赋值给object类型的变量，所以需要根据不同的基本类型做不同的处理
+				// value into stack, for primitive type, we have to convert it to Reference Type
 				if ("int".equals(typeName)) {
 					mv.visitVarInsn(Opcodes.ILOAD, j + (isStatic ? 0 : 1));
 					mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;",
@@ -552,7 +547,7 @@ public class AppVisitor extends ClassVisitor {
 				} else if ("long".equals(typeName)) {
 					mv.visitVarInsn(Opcodes.LLOAD, j + (isStatic ? 0 : 1));
 					mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", false);
-					// long和double基本类型的变量，在局部变量表中会花2个slot储存参数值，所以顺序访问参数时要跳一个
+					// be careful, for long and double type, class use 2 slots to store them
 					j++;
 				} else if ("float".equals(typeName)) {
 					mv.visitVarInsn(Opcodes.FLOAD, j + (isStatic ? 0 : 1));
@@ -564,7 +559,7 @@ public class AppVisitor extends ClassVisitor {
 							false);
 					j++;
 				} else {
-					// 基本类型之外的引用类型可直接入栈（直接赋值给object变量）
+					// Reference Type
 					mv.visitVarInsn(Opcodes.ALOAD, j + (isStatic ? 0 : 1));
 				}
 				mv.visitInsn(Opcodes.AASTORE);
@@ -577,16 +572,16 @@ public class AppVisitor extends ClassVisitor {
 	    	//System.out.println("maxStack = " +maxStack+ " maxLocals = "+maxLocals);
 	    	//System.out.println("this.maxStack = "+this.maxStack);
 			if (!methodName.equals("<init>")) {
-				// 标志：try块结束
+				// end of try clock
 				mv.visitLabel(to);
-				// 异常表要加到最后，保证我们添加的异常是优先级最低的
+				// exception table
 				mv.visitTryCatchBlock(from, to, target, "java/lang/Exception");
 
-				// 标志：catch块开始位置
+				// beginning of catch block
 				mv.visitLabel(target);
 				Object[] locals = new Object[barrayIndex + 1];
 				for (int i = 0; i < barrayIndex; i++) {
-					// 占位符，不确定用什么值，姑且用top，反正不会报错就行
+					// I'm not very ensure here...
 					locals[i] = Opcodes.TOP;
 				}
 				locals[barrayIndex] = "[Z";
@@ -594,7 +589,7 @@ public class AppVisitor extends ClassVisitor {
 
 				// insertPrintInsn(fullMethodName);
 
-				//把异常传递出去
+				//transfer exception to our Intercepter
 				mv.visitInsn(Opcodes.DUP);
 				//mv.visitInsn(Opcodes.ACONST_NULL);
 				mv.visitLdcInsn(fullMethodName);
@@ -605,10 +600,11 @@ public class AppVisitor extends ClassVisitor {
 								"(Ljava/lang/Object;Ljava/lang/String;[Z)V",
 								false);
 
-				// 抛出异常
+				// throw exception out
 				mv.visitInsn(Opcodes.ATHROW);
 			}
-		    //ClassWriter使用了COMPUTE_MAXS，这里参数值会忽略，可以填任意值，但一定要调一下visitMaxs方法，否则不会自动计算
+		    //we use COMPUTE_MAXS in ClassWriter, so the parameter values are not important,
+			//we can use any value here, just remember to invoke visitMaxs method in order to trigger computing
 		    mv.visitMaxs(maxStack, maxLocals);
 			/*if(aa.stack==null) {
 				maxStack = Math.max(4, maxStack);
@@ -628,25 +624,22 @@ public class AppVisitor extends ClassVisitor {
 		
 		@Override
 		public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
-			//处理操作数栈frame声明问题，stack map table entry， uninitialized类型的栈变量label可能在添加探针指令时发生变化，需要写入新的label
+			//process operant stack problem. in stack map table entry,the uninitialized label should be replace by the new one
 			Object[] newStack = new Object[stack.length];
 			for(int i=0;i<stack.length;i++) {
 				if(stack[i] instanceof Label) {
 					Label uninitVarLabel = (Label)stack[i];
-					//System.out.println("luanfei debug +++ old label : "+uninitVarLabel);
+					//System.out.println("debug +++ old label : "+uninitVarLabel);
 					if(stackMap.containsKey(uninitVarLabel)) {
 						newStack[i] = stackMap.get(uninitVarLabel);
-						//System.out.println("luanfei debug +++ new label " + newStack[i]);
+						//System.out.println("debug +++ new label " + newStack[i]);
 						continue;
 					}
 				}
 				newStack[i] = stack[i];
 			}
-			//一个frame node代表一个跳转的目的地，以下变量表示当前行是一个跳转目的地
+			//a frame node implicit a jumping destination
 			jumpDestination = true;
-			/*for(Object o : newStack) {
-				System.out.println("luanfei debug +++ new stack : "+o);
-			}*/
 			//System.out.println("numLocal = "+numLocal+" numStack = "+numStack);
 			mv.visitFrame(type, numLocal, local, numStack, newStack);
 		}

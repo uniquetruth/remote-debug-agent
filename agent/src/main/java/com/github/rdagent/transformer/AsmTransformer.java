@@ -20,7 +20,7 @@ public class AsmTransformer implements ClassFileTransformer {
 	private List<TransformHandler> hanlderList = new ArrayList<TransformHandler>();
 	
 	public AsmTransformer() {
-		//regist every bytecode manipulator
+		//register every bytecode manipulator
 		registerHandler(new AppHandler());
 		registerHandler(new ServletHandler());
 		registerHandler(new Struts2Handler());

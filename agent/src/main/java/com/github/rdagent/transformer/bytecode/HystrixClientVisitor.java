@@ -56,9 +56,9 @@ public class HystrixClientVisitor extends ClassVisitor {
 	}
 	
 	/**
-	 * 代理客户端的构造器在实例化时，是由业务线程执行的，此时的当前线程是有绑定ip的线程
-	 * 此时将ip写入自定义新增的字段中保存下来
-	 * @author luanfei
+	 * While creating the proxy client instance, Thread.currentThread() is business thread, it has binded a ip
+	 * So we can store this ip into the custom new field
+	 * @author uniqueT
 	 *
 	 */
 	class ConstructVisitor extends AdviceAdapter{
@@ -80,8 +80,9 @@ public class HystrixClientVisitor extends ClassVisitor {
 	}
 	
 	/**
-	 * run方法是Hystrix的线程执行的，在这里需要将当前线程与自定义字段里的ip进行绑定和解绑
-	 * @author luanfei
+	 * run method is executed by Hystrix's thread
+	 * need to bind and unbind this thread with the ip in the custom new field
+	 * @author uniqueT
 	 *
 	 */
 	class RunVisitor extends AdviceAdapter{

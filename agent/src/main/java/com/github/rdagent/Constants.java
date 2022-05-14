@@ -10,7 +10,7 @@ public class Constants {
 	public static final String customIpHeader = "test-coverage-sip";
 	
 	/**
-	 * a virtural identification
+	 * a virtual identification
 	 */
 	public static final String virtualIp = "999.999.999.999";
 	

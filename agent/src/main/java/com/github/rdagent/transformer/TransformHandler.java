@@ -10,7 +10,7 @@ public interface TransformHandler {
 	public boolean filterClassName(String className);
 	
 	/**
-	 * the smaller the heigher
+	 * the smaller the higher
 	 * @return
 	 */
 	public int getPriority();
