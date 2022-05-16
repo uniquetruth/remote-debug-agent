@@ -60,7 +60,7 @@ task agentTest(type: JavaExec, dependsOn:copyJars) {
 	def premainArgs = '=includes=com.github.rdagent.test,outputdir=.,apiport=8098,dependIP=false'
 	classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
 	main = 'com.github.rdagent.test.AppClass'
-	jvmArgs = [ agentPath+premainArgs, '-Drdagent.trace=true', '-Drdagent.coverage.trace=true' ]
+	jvmArgs = [ agentPath+premainArgs, '-Drdagent.trace=true', '-Drdagent.trace.lines=true' ]
 	//main = 'com.github.rdagent.test.WebApplication'
 	//jvmArgs = [ agentPath+premainArgs, '-Dlogging.level.root=off' ]
 }

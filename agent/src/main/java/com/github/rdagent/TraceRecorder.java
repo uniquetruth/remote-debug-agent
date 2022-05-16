@@ -1,10 +1,14 @@
 package com.github.rdagent;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import com.github.rdagent.common.CoverageSnapshot;
 import com.github.rdagent.common.Util;
 import com.github.rdagent.server.AgentServer;
 
@@ -34,23 +38,27 @@ public class TraceRecorder extends Thread {
 	 */
 	@Override
 	public void run() {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS");
+		String filename = sdf.format(new Date());
 		if(AgentOptions.getProcTrace()) {
-			dumpLog();
+			dumpTrace(filename);
+		}
+		if(AgentOptions.getProcCoverage()) {
+			dumpCoverage(filename);
 		}
 		AgentServer.stop();
 	}
 	
 	
 	/**
-	 * dump log file
+	 * dump trace file
 	 */
-	private void dumpLog() {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS");
-		File f = new File(outputDir + File.separator + sdf.format(new Date()) + ".log");
+	private void dumpTrace(String filename) {
+		File f = new File(outputDir + File.separator + filename + ".log");
 		FileWriter writer = null;
 		try {
 			String message = Util.getJsonTrace(Constants.virtualIp, AgentOptions.getProcTraceTime(), 
-					AgentOptions.getProcTraceCover());
+					AgentOptions.getProcTraceLines());
 			writer = new FileWriter(f, false);
 			if (message != null) {
 				writer.write(message);
@@ -62,6 +70,30 @@ public class TraceRecorder extends Thread {
 			if (writer != null) {
 				try {
 					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	private void dumpCoverage(String filename) {
+		File f = new File(outputDir + File.separator + filename +".data");
+		
+		CoverageSnapshot ca = new CoverageSnapshot();
+		ObjectOutputStream bos = null;
+		try {
+			bos = new ObjectOutputStream(new FileOutputStream(f));
+			bos.writeObject(ca.getIpMethodMap());
+			bos.writeObject(ca.getCoverageMap());
+			bos.writeObject(ca.getRecordLineMap());
+			
+		}catch(IOException e) {
+			e.printStackTrace();
+		}finally {
+			if(bos!=null) {
+				try {
+					bos.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

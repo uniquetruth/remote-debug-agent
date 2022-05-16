@@ -3,6 +3,7 @@ package com.github.rdagent.transformer.intercepter;
 import java.util.ArrayList;
 
 import com.github.rdagent.AgentOptions;
+import com.github.rdagent.transformer.intercepter.vo.TraceVo;
 
 /**
  * intercept methods of classes which are in the agent includes scope
@@ -81,7 +82,9 @@ public class AppIntercepter{
 			if(IPmap.hasAddress() || !AgentOptions.isDependIP()) {
 				IPmap.stroeMethod(methodName, probes);
 				if(IPmap.canTrace()) {
-					IPmap.traceMethod(methodName, returnValue);
+					//System.out.println("AppIntercepter methodName "+methodName);
+					TraceVo vo = IPmap.traceMethod(methodName, returnValue);
+					vo.setCoverage(probes);
 				}
 			}
 		}catch(Exception e) {

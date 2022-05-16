@@ -31,10 +31,14 @@ public class Constants {
 	/**
 	 * for local program, specify if dump method running duration
 	 */
-	public static final String procTimeSwitch = "rdagent.time.trace";
+	public static final String procTimeSwitch = "rdagent.trace.time";
 	/**
 	 * for local program, specify if dump method coverage data
 	 */
-	public static final String procCoverageSwitch = "rdagent.coverage.trace";
+	public static final String procLinesSwitch = "rdagent.trace.lines";
+	/**
+	 * for local program, specify if dump method coverage data
+	 */
+	public static final String procCoverageSwitch = "rdagent.coverage";
 
 }

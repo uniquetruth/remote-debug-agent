@@ -212,8 +212,8 @@ public class IPmap{
 		}
 	}
 
-	//invoke when method AppIntercepter.onMethodOut
-	public static void traceMethod(String methodName, Object returnValue) {
+	//invoked when method AppIntercepter.onMethodOut
+	public static TraceVo traceMethod(String methodName, Object returnValue) {
 		String ip ;
 		if(AgentOptions.isDependIP()) {
 			ip = ipMap.get(Thread.currentThread());
@@ -222,8 +222,9 @@ public class IPmap{
 		}
 		List<TraceVo> list = traceMap.get(ip);
 		//stack data structure
+		TraceVo vo = null;
 		for(int i=list.size()-1;i>=0;i--) {
-			TraceVo vo = list.get(i);
+			vo = list.get(i);
 			if(methodName.equals(vo.getMethod()) && vo.getReturnValue()==null) {
 				vo.setEndTime(System.currentTimeMillis());
 				vo.setReturnValue(obj2Str(returnValue, 0));
@@ -233,6 +234,7 @@ public class IPmap{
 		int deep = traceSwitchMap.get(ip);
 		deep--;
 		traceSwitchMap.put(ip, deep);
+		return vo;
 	}
 	
 	//can't store original object in TraceVo, need to only record the value of parameters in this "timestamp"

@@ -38,7 +38,8 @@ public class AgentOptions {
 	//for local java program using
 	private static boolean procTrace = false;
 	private static boolean procTraceTime = false;
-	private static boolean procTraceCover = false;
+	private static boolean procTraceLines = false;
+	private static boolean procCoverage = false;
 	
 	//for hot-plugging
 	private static ClassFileTransformer cft;
@@ -104,8 +105,11 @@ public class AgentOptions {
 		if("true".equals(System.getProperty(Constants.procTimeSwitch))) {
 			procTraceTime = true;
 		}
+		if("true".equals(System.getProperty(Constants.procLinesSwitch))) {
+			procTraceLines = true;
+		}
 		if("true".equals(System.getProperty(Constants.procCoverageSwitch))) {
-			procTraceCover = true;
+			procCoverage = true;
 		}
 	}
 	
@@ -157,8 +161,12 @@ public class AgentOptions {
 		return procTraceTime;
 	}
 	
-	public static boolean getProcTraceCover() {
-		return procTraceCover;
+	public static boolean getProcTraceLines() {
+		return procTraceLines;
+	}
+	
+	public static boolean getProcCoverage() {
+		return procCoverage;
 	}
 	
 	public static void storeAgent(ClassFileTransformer _cft, Instrumentation _inst) {

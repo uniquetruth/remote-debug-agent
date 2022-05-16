@@ -19,7 +19,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 
 import com.github.rdagent.AgentOptions;
-import com.github.rdagent.common.CoverageAnalyzer;
+import com.github.rdagent.common.CoverageSnapshot;
 import com.github.rdagent.transformer.AsmTransformer;
 import com.github.rdagent.transformer.intercepter.IPmap;
 
@@ -84,13 +84,13 @@ public class ManageContext extends AbstractHandler{
 			filename.append(".cover");
 			File f = new File(filename.toString());
 			
-			CoverageAnalyzer ca = new CoverageAnalyzer();
+			CoverageSnapshot cs = new CoverageSnapshot();
 			ObjectOutputStream bos = null;
 			try {
 				bos = new ObjectOutputStream(new FileOutputStream(f));
-				bos.writeObject(ca.getIpMethodMap());
-				bos.writeObject(ca.getCoverageMap());
-				bos.writeObject(ca.getRecordLineMap());
+				bos.writeObject(cs.getIpMethodMap());
+				bos.writeObject(cs.getCoverageMap());
+				bos.writeObject(cs.getRecordLineMap());
 				
 			}catch(IOException e) {
 				e.printStackTrace();

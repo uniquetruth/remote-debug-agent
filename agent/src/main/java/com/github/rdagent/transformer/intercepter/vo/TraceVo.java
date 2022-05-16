@@ -11,6 +11,7 @@ public class TraceVo {
 	private int deep;
 	private long startTime = 0;
 	private long endTime = 0;
+	private boolean[] coverage = null;
 	
 	public String getMethod() {
 		return method;
@@ -47,6 +48,15 @@ public class TraceVo {
 	}
 	public void setStartTime(long startTime) {
 		this.startTime = startTime;
+	}
+	public boolean[] getCoverage() {
+		return coverage;
+	}
+	public void setCoverage(boolean[] coverage) {
+		this.coverage = new boolean[coverage.length];
+		for(int i=0;i<coverage.length;i++) {
+			this.coverage[i] = coverage[i];
+		}
 	}
 
 }
