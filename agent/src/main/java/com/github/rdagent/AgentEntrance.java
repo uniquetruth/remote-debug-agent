@@ -63,7 +63,7 @@ public class AgentEntrance {
 		Class<?> c = Agent3rdPartyClassloader.getClassloader().loadClass("com.github.rdagent.RealAgent");
 		try {
 			Method m = c.getMethod("doAgentEnter", String.class, Instrumentation.class, String.class, boolean.class);
-			m.invoke(c.newInstance(), agentArgs, inst, path, isHotPlugging);
+			m.invoke(c.newInstance(), agentArgs, inst, path.substring(0, path.lastIndexOf("/")), isHotPlugging);
 		} catch (Exception e) {
 			throw new RuntimeException("RealAgent reflect exception.", e);
 		}
