@@ -46,6 +46,9 @@ public class AgentOptions {
 	private static Instrumentation inst;
 	private static Thread shutdownHook;
 	
+	//customHandlers[0]:injected class name, customHandlers[1] handler's class name
+	private static List<String[]> customHandlers = new ArrayList<String[]>();
+	
 	public static void initOptions(String _commdArgs, String _jarDir) {
 		commdArgs = _commdArgs;
 		jarDir = _jarDir;
@@ -188,6 +191,24 @@ public class AgentOptions {
 	
 	public static Thread getSDHook() {
 		return shutdownHook;
+	}
+	
+	public static void storeHandlerNames(List<String> injectClassNames, String handlerClassName) {
+		out: for (String name : injectClassNames) {
+			for (String customName[] : customHandlers) {
+				if (customName[0].equals(name)) {
+					continue out;
+				}
+			}
+			String[] s = new String[2];
+			s[0] = name;
+			s[1] = handlerClassName;
+			customHandlers.add(s);
+		}
+	}
+	
+	public static List<String[]> getCustomHandlers(){
+		return customHandlers;
 	}
 
 }

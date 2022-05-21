@@ -104,21 +104,7 @@ public class AppVisitor extends ClassVisitor {
 		}
 
 		public void visitCode() {
-			//System.out.println(fullMethodName);
-			/*if(fullMethodName.contains("getCbsUser")) {
-				System.out.print("luanfei debug +++ lineNumberList : [");
-				for(int x=0;x< methodLines.size();x++) {
-					String ln = x>0 ? ", "+methodLines.get(x) : String.valueOf(methodLines.get(x));
-					System.out.print(ln);
-				}
-				System.out.println("]");
-				System.out.print("luanfei debug +++ insnOffsetList : [");
-				for(int x=0;x< offsetList.size();x++) {
-					String lo = x>0 ? ", "+offsetList.get(x) : String.valueOf(offsetList.get(x));
-					System.out.print(lo);
-				}
-				System.out.println("]");
-			}*/
+			//System.out.println("fullMethodName = "+fullMethodName);
 			mv.visitCode();
 			// ==============at the beginning of this method, invoke AppInterceptor.onMethodIn to record==========
 			// new Object[parameters.length]
@@ -507,7 +493,7 @@ public class AppVisitor extends ClassVisitor {
 	    			|| opcode == Opcodes.ANEWARRAY || opcode == Opcodes.MULTIANEWARRAY) {
     			Label newLabel = new Label();
     			stackMap.put(lastLabel, newLabel);
-    			//System.out.println("luanfei debug +++ replace "+lastLabel+" to "+newLabel);
+    			//System.out.println("uniqueT debug +++ replace "+lastLabel+" to "+newLabel);
 	    		mv.visitLabel(newLabel);
 	    	}
 		}

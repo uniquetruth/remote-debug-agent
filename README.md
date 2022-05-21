@@ -32,5 +32,12 @@ For now, this agent supports some popular frameworks:
 + Dubbo
 + Rabbitmq  
 
-And I suppose to provide a convenient interface for supporting more frameworks, even your custom one.  
 Of course, you can use this agent in your local java program. It collects debug information and dumps them into a file after the main thread stoped.  
+
+## Advance Usage
+**How to make this agent be compatible with more framworks**  
+I also have provided an easy way to support more frameworks(based on HttpServlet). For example, you have a web application that uses com.foo.bar.MyServlet as core frame. To use this agent in your application, just write a class extends com.github.rdagent.transformer.handler.DefaultServletAdatper, override injectClassNameList() method, make it return a List contains String value "com.foo.bar.MyServlet". Pack this class into a jar file, put it beside remote-debug-agent.jar, and done. You have already been able to debug your application remotely.  
+  
+**How to use it in the internet environment**  
+By default, this agent uses the client's IP address as threads' identification to distinguish different invokers, so that many testers can debug remotely in the integration environment at the same time. But if you work in the internet environment or can't fix your IP address for any reason, this default way may not be enough.
+Like **How to make this agent be compatible with more framworks** chapter, you can easily solve this problem by extending DefaultServletAdatper too. Override extractIdentity() method and use getHttpXXX(e.g. getHttpHeader()) method to get other information in the request, you can use any String as the thread's identification.  

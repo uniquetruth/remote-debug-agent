@@ -17,10 +17,14 @@ public class ServletVisitor extends ClassVisitor {
 	//private String httpClassName = HttpServletRequest.class.getName();
 	private String httpClassName = "javax.servlet.http.HttpServletRequest";
 	private int api;
-
-	public ServletVisitor(int api, ClassVisitor classVisitor) {
+	//which parameter is HttpServletRequest. Default is 1
+	private int reqIndex = 1;
+	
+	public ServletVisitor(int api, ClassVisitor classVisitor, String methodName, int reqIndex) {
 		super(api, classVisitor);
 		this.api = api;
+		this.reqIndex = reqIndex;
+		targetMethod = methodName;
 	}
 	
 	@Override
@@ -29,7 +33,7 @@ public class ServletVisitor extends ClassVisitor {
 		MethodVisitor mv = cv.visitMethod(access, name, descriptor, signature, exceptions);
 		Type[] parameters = Type.getArgumentTypes(descriptor);
 		if(targetMethod.equals(name) && hasHttpArgs(parameters)){
-			//System.out.println("luanfei debug +++ alter HttpServlet.service");
+			//System.out.println("uniqueT debug +++ alter HttpServlet.service");
 			return new BindIpVisitor(api, mv, access, name, descriptor);
 		}
 		return mv;
@@ -52,7 +56,7 @@ public class ServletVisitor extends ClassVisitor {
 		
 		@Override
 		protected void onMethodEnter() {
-			mv.visitVarInsn(Opcodes.ALOAD, 1);
+			mv.visitVarInsn(Opcodes.ALOAD, reqIndex);
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 					"com/github/rdagent/transformer/intercepter/HttpReqInterceptor",
 					"bindIP",

@@ -54,8 +54,8 @@ public class AgentEntrance {
 			cl = ClassLoader.getSystemClassLoader();
 		}
 		String path = cl.getResource("com/github/rdagent/AgentEntrance.class").getPath();
-		//System.out.println(path.substring(5, path.indexOf(".jar!")+4));
-		path = path.substring(5, path.lastIndexOf("/", path.indexOf(".jar!"))+1);
+		//System.out.println("path="+path);
+		path = path.substring(5, path.indexOf(".jar!")+4);
 		
 		//prepare an Agent3rdPartyClassloader
 		Agent3rdPartyClassloader.init(path, cl);

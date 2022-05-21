@@ -55,7 +55,7 @@ task copyJars(type:Copy, dependsOn:jar) {
 	into 'build/libs'
 }
 
-task agentTest(type: JavaExec, dependsOn:copyJars) {
+task agentTest(type: JavaExec, dependsOn:[ copyJars, testClasses]) {
 	def agentPath = '-javaagent:./build/libs/remote-debug-agent.jar'
 	def premainArgs = '=includes=com.github.rdagent.test,outputdir=.,apiport=8098,dependIP=false'
 	classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
