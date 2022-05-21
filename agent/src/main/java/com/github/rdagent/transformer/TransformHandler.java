@@ -4,7 +4,7 @@ public interface TransformHandler {
 	
 	/**
 	 * determine should a class be transformed by this handler
-	 * @param className
+	 * @param className name of the class being loaded. E.g. java/lang/String
 	 * @return
 	 */
 	public boolean filterClassName(String className);
@@ -15,6 +15,13 @@ public interface TransformHandler {
 	 */
 	public int getPriority();
 	
+	/**
+	 * transform the class bytes.<br/>
+	 * see also {@link java.lang.instrument.ClassFileTransformer#transform}
+	 * @param _className
+	 * @param _classfileBuffer
+	 * @return
+	 */
 	public byte[] process(String _className, byte[] _classfileBuffer);
 
 }

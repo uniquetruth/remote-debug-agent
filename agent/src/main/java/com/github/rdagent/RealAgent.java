@@ -28,8 +28,10 @@ public class RealAgent {
 	 * @param isHotPlugging
 	 * @throws UnmodifiableClassException
 	 * @throws ClassNotFoundException
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	public void doAgentEnter(String agentArgs, Instrumentation inst, String jarDir, boolean isHotPlugging) throws UnmodifiableClassException, ClassNotFoundException {
+	public void doAgentEnter(String agentArgs, Instrumentation inst, String jarDir, boolean isHotPlugging) throws UnmodifiableClassException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 		AgentOptions.initOptions(agentArgs, jarDir);
 		//register transformer
 		AsmTransformer atf = new AsmTransformer();

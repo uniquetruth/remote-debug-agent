@@ -55,12 +55,12 @@ task copyJars(type:Copy, dependsOn:jar) {
 	into 'build/libs'
 }
 
-task agentTest(type: JavaExec, dependsOn:copyJars) {
+task agentTest(type: JavaExec, dependsOn:[ copyJars, testClasses]) {
 	def agentPath = '-javaagent:./build/libs/remote-debug-agent.jar'
-	def premainArgs = '=includes=com.github.rdagent.test,outputdir=.,apiport=8098,dependIP=false'
+	def premainArgs = '=includes=com.github.rdagent.test,outputdir=.,apiport=8098,dependIP=true'
 	classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
-	main = 'com.github.rdagent.test.AppClass'
-	jvmArgs = [ agentPath+premainArgs, '-Drdagent.trace=true', '-Drdagent.trace.lines=true' ]
-	//main = 'com.github.rdagent.test.WebApplication'
-	//jvmArgs = [ agentPath+premainArgs, '-Dlogging.level.root=off' ]
+	//main = 'com.github.rdagent.test.AppClass'
+	//jvmArgs = [ agentPath+premainArgs, '-Drdagent.trace=true', '-Drdagent.trace.lines=true' ]
+	main = 'com.github.rdagent.test.WebApplication'
+	jvmArgs = [ agentPath+premainArgs, '-Dlogging.level.root=off' ]
 }

@@ -1,11 +1,7 @@
 package com.github.rdagent.transformer.handler;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-
-import com.github.rdagent.Constants;
-import com.github.rdagent.transformer.AbstractHandler;
-import com.github.rdagent.transformer.bytecode.ServletVisitor;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * inject HttpServlet.service(HttpServletRequest, HttpServletResponse)
@@ -13,25 +9,22 @@ import com.github.rdagent.transformer.bytecode.ServletVisitor;
  * @author uniqueT
  *
  */
-public class ServletHandler extends AbstractHandler{
+public class ServletHandler extends DefaultServletAdatper{
 	
-	//most framework and middleware use standard java servlet
-	private String javaServlet = "javax/servlet/http/HttpServlet";
+	//most frameworks and middlewares use standard java servlet
+	private String javaServlet = "javax.servlet.http.HttpServlet";
 	//weblogic may use this
-	private String wlServlet = "weblogic/servlet/ServletServlet";
-
-	@Override
-	public boolean filterClassName(String className) {
-		return javaServlet.equals(className) || wlServlet.equals(className);
+	private String wlServlet = "weblogic.servlet.ServletServlet";
+	
+	public List<String> injectClassNameList(){
+		List<String> nameList = new ArrayList<String>();
+		nameList.add(javaServlet);
+		nameList.add(wlServlet);
+		return nameList;
 	}
-
-	@Override
-	public byte[] process(String className, byte[] classfileBuffer) {
-		ClassReader cr = new ClassReader(classfileBuffer);
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        ServletVisitor tv = new ServletVisitor(Constants.asmApiVersion, cw);
-        cr.accept(tv, ClassReader.EXPAND_FRAMES);
-		return cw.toByteArray();
+	
+	public int getPriority() {
+		return 11;
 	}
 
 }

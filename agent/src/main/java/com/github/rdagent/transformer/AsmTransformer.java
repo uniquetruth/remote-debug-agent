@@ -6,29 +6,45 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.rdagent.AgentOptions;
+import com.github.rdagent.loader.Agent3rdPartyClassloader;
 import com.github.rdagent.transformer.handler.AppHandler;
+import com.github.rdagent.transformer.handler.DefaultServletAdatper;
 import com.github.rdagent.transformer.handler.DubboHandler;
 import com.github.rdagent.transformer.handler.FeignHandler;
 import com.github.rdagent.transformer.handler.HystrixClientHandler;
-import com.github.rdagent.transformer.handler.ServletHandler;
+//import com.github.rdagent.transformer.handler.ServletHandler;
 import com.github.rdagent.transformer.handler.SpringRabbitHandler;
 import com.github.rdagent.transformer.handler.SpringSimpleClientHandler;
-import com.github.rdagent.transformer.handler.Struts2Handler;
+//import com.github.rdagent.transformer.handler.Struts2Handler;
 
 public class AsmTransformer implements ClassFileTransformer {
 	
 	private List<TransformHandler> hanlderList = new ArrayList<TransformHandler>();
 	
-	public AsmTransformer() {
+	public AsmTransformer() throws InstantiationException, IllegalAccessException {
 		//register every bytecode manipulator
+		//register fixed handler
 		registerHandler(new AppHandler());
-		registerHandler(new ServletHandler());
-		registerHandler(new Struts2Handler());
 		registerHandler(new DubboHandler());
 		registerHandler(new FeignHandler());
 		registerHandler(new HystrixClientHandler());
 		registerHandler(new SpringSimpleClientHandler());
 		registerHandler(new SpringRabbitHandler());
+		//registerHandler(new ServletHandler());
+		//registerHandler(new Struts2Handler());
+		
+		//register custom handler
+		for(Class<?> c : Agent3rdPartyClassloader.getClassloader().getSelfRegisterClasses()) {
+			registerHandler((TransformHandler) c.newInstance());
+		}
+		
+		for(TransformHandler h : hanlderList) {
+			if(h instanceof DefaultServletAdatper) {
+				AgentOptions.storeHandlerNames(((DefaultServletAdatper)h).injectClassNameList(),
+						h.getClass().getName());
+			}
+		}
 	}
 	
 	private void registerHandler(TransformHandler handler) {
@@ -52,7 +68,7 @@ public class AsmTransformer implements ClassFileTransformer {
 	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
 			ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 		try {
-			//System.out.println("luanfei debug +++ name : "+className);
+			//System.out.println("uniqueT debug +++ name : "+className);
 			if(className==null || staticFilter(className)) {
 				return null;
 			}
@@ -62,7 +78,7 @@ public class AsmTransformer implements ClassFileTransformer {
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("luanfei debug +++ err class: "+className);
+			System.err.println("uniqueT debug +++ err class: "+className);
 			e.printStackTrace();
 		}
 
