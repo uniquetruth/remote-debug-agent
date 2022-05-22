@@ -90,6 +90,7 @@ public class AppVisitor extends ClassVisitor {
 		private int insnOffset = 0;
 		private int lineIndex = -1;
 		private Label lastLabel = null;
+		private Label lastLineLabel = null;
 		private Map<Label, Label> stackMap = new HashMap<Label, Label>();
 
 		public MethodEnhanceVisitor(int api, int access, String name, String desc, MethodVisitor methodVisitor) {
@@ -166,27 +167,7 @@ public class AppVisitor extends ClassVisitor {
 		
 		//write value to probe in following 13 visit(X)insn methods
 		public void visitInsn(int opcode) {
-			//some of classes that is be created by dynamic framework may have a little "extraordinary" structure.
-			//For these classes, asm may call visitInsn before visitLineNumber, so we have to check lineIndex here
-			if(lineIndex == -1) {
-				mv.visitInsn(opcode);
-				return;
-			}
-			//condition of line start probe. It's the first instruction of a line
-			if(insnOffset==0) {
-				if(methodLines.get(lineIndex)>0 //1. this line contains "jump" instruction
-					|| lineIndex==0 //2. this is the first line of a method
-					|| methodLines.get(lineIndex-1)>0 //3. this is the first line of a sequential block
-					|| jumpDestination) { //4. this line is a jumping destination
-					writeStartProbe(opcode);
-				}
-			//condition of line end probe
-			}else if((insnOffset+1)==offsetList.get(lineIndex) //1. It's the last instruction of a line
-					&& methodLines.get(lineIndex)>0){ //2. this line contains "jump" instruction
-				writeEndProbe(opcode);
-			}
-	    	insnOffset++;
-	    	//before returning (don't process Opcodes.ATHROW, try-catch block to do it)
+			//before returning (don't process Opcodes.ATHROW, use try-catch block to do it)
 	    	//if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) || opcode == Opcodes.ATHROW) {
 	    	if (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) {
 	    		if(opcode == Opcodes.RETURN) {
@@ -230,6 +211,28 @@ public class AppVisitor extends ClassVisitor {
 						"(Ljava/lang/Object;Ljava/lang/String;[Z)V",
 						false);
 	    	}
+			
+			//some of classes that is be created by dynamic framework may have a little "extraordinary" structure.
+			//For these classes, asm may call visitInsn before visitLineNumber, so we have to check lineIndex here
+			if(lineIndex == -1) {
+				mv.visitInsn(opcode);
+				return;
+			}
+			//condition of line start probe. It's the first instruction of a line
+			if(insnOffset==0) {
+				if(methodLines.get(lineIndex)>0 //1. this line contains "jump" instruction
+					|| lineIndex==0 //2. this is the first line of a method
+					|| methodLines.get(lineIndex-1)>0 //3. this is the first line of a sequential block
+					|| jumpDestination) { //4. this line is a jumping destination
+					writeStartProbe(opcode);
+				}
+			//condition of line end probe
+			}else if((insnOffset+1)==offsetList.get(lineIndex) //1. It's the last instruction of a line
+					&& methodLines.get(lineIndex)>0){ //2. this line contains "jump" instruction
+				writeEndProbe(opcode);
+			}
+	    	insnOffset++;
+	    	
 	    	//System.out.println("visitInsn : opcode="+opcode);
 	    	mv.visitInsn(opcode);
 	    }
@@ -452,9 +455,15 @@ public class AppVisitor extends ClassVisitor {
 	    
 	    public void visitLineNumber(int line, Label start) {
 	    	//if this method be called, means a new code line begins
+	    	//System.out.println("visitLineNumber line= "+line);
+	    	//if a line doesn't contain insn(no visitInsn between two visitLineNumber), 
+	    	//AppHandler doen't count methodLines and offsetList
+	    	if(!start.equals(lastLineLabel)) {
+	    		lineIndex++;
+	    	}
 	    	insnOffset = 0;
-	    	lineIndex++;
 	    	jumpDestination = false;
+	    	lastLineLabel = start;
 			mv.visitLineNumber(line, start);
 			//System.out.println("line = "+line+" ; label = "+start + " "+start.getOffset());
 		}

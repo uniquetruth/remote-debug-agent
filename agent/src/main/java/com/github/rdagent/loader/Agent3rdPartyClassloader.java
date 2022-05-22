@@ -239,7 +239,10 @@ public class Agent3rdPartyClassloader extends ClassLoader{
             	if(Agent3rdPartyClassloader.class.getName().equals(name)) {
             		//never duplicate Agent3rdPartyClassloader
             		//make sure Agent3rdPartyClassloader itself is always loaded by SystemClassLoader
-                	c = parent.loadClass(name);
+                	if(parent != null)
+                		c = parent.loadClass(name); //use AppClassLoader
+                	else
+                		c = super.loadClass(name, resolve); //use JVM's BootClassLoader
                 } else {
                 	c = findClass(name);
                 	/* Can't check BothUsing annotation here, because if a class has already been loaded above
@@ -250,7 +253,10 @@ public class Agent3rdPartyClassloader extends ClassLoader{
                 	 * so JVM determines we try to duplicate one class's definition. 
                 	 */
                 	if(c == null) {
-                		c = parent.loadClass(name);
+                		if(parent != null)
+                			c = parent.loadClass(name);
+                		else
+                        	c = super.loadClass(name, resolve);
                 	}
                 }
             	if (resolve) {

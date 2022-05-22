@@ -49,11 +49,13 @@ public class AgentEntrance {
 		System.out.println("AgentEntrance.premain() was called. +++ agentArgs:" + agentArgs);
 		
 		//get the path of agent's jar
-		ClassLoader cl = AgentEntrance.class.getClassLoader();
+		ClassLoader cl = AgentEntrance.class.getClassLoader(); //may be AppClassLoader or null
+		String path = null;
 		if(cl ==null) {
-			cl = ClassLoader.getSystemClassLoader();
+			path = ClassLoader.getSystemClassLoader().getResource("com/github/rdagent/AgentEntrance.class").getPath();
+		}else {
+			path = cl.getResource("com/github/rdagent/AgentEntrance.class").getPath();
 		}
-		String path = cl.getResource("com/github/rdagent/AgentEntrance.class").getPath();
 		//System.out.println("path="+path);
 		path = path.substring(5, path.indexOf(".jar!")+4);
 		

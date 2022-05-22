@@ -18,8 +18,7 @@ jar {
     manifest {
         attributes 'Premain-Class': 'com.github.rdagent.AgentEntrance'
         attributes 'Agent-Class': 'com.github.rdagent.AgentEntrance'
-		attributes 'Main-Class': 'com.github.rdagent.JVMattachThread'
-		attributes 'Can-Retransform-Classes': 'true'
+        attributes 'Can-Retransform-Classes': 'true'
         attributes 'Built-By': 'uniqueT'
         attributes 'Build-Jdk': '1.8'
     }

@@ -94,7 +94,8 @@ public class AppHandler extends AbstractHandler {
 		}
 		insnOffsetList.add(offset);
 		lineNumberList.add(jumpFlag ? lineNum : -lineNum);
-		//for abstract method and interface method, lineNumberList=[0]
+		//for abstract method and interface method, lineNumberList=[0] insnOffsetList=[0]
+		//for method without LineNumberTable lineNumberList=[0] insnOffsetList=[n]
 		methodLineMap.put(methodName, lineNumberList);
 		methodOffsetMap.put(methodName, insnOffsetList);
     }
@@ -126,7 +127,14 @@ public class AppHandler extends AbstractHandler {
         AppVisitor appVisitor = new AppVisitor(Constants.asmApiVersion, cw, methodOffsetMap, methodLineMap);
 
         cr.accept(appVisitor, ClassReader.EXPAND_FRAMES);
-        return cw.toByteArray();
+        byte[] data = cw.toByteArray();
+        /*try (FileOutputStream fos = new FileOutputStream("./test.class")) {
+            fos.write(data);
+            //fos.close // no need, try-with-resources auto close
+        } catch (Exception e) {
+			e.printStackTrace();
+		}*/
+        return data;
 	}
 	
 	private boolean scopeMatcher(String className) {
