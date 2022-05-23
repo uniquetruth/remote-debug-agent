@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -29,9 +31,16 @@ public class AppHandler extends AbstractHandler {
 	
 	private Map<String, ArrayList<Integer>> methodLineMap = new HashMap<String, ArrayList<Integer>>();
 	private Map<String, ArrayList<Integer>> methodOffsetMap = new HashMap<String, ArrayList<Integer>>();
+	private List<Scope> includeScopes = new ArrayList<Scope>();
+	private List<Scope> excludeScopes = new ArrayList<Scope>();
 	
 	public AppHandler() {
-		//System.out.println("cl in AppHandler : "+AppHandler.class.getClassLoader());
+		for(String s : AgentOptions.getScopes()) {
+			includeScopes.add(new Scope(s));
+		}
+		for(String s : AgentOptions.getExScopes()) {
+			excludeScopes.add(new Scope(s));
+		}
 	}
     
     private boolean analyseClass(byte[] classfileBuffer, String className) {
@@ -140,9 +149,8 @@ public class AppHandler extends AbstractHandler {
 	private boolean scopeMatcher(String className) {
 		className = className.replaceAll("/", ".");
 		//System.out.println("class name : "+className);
-		List<String> sl = AgentOptions.getScopes();
-		for(String scope : sl) {
-			if(className.startsWith(scope)) {
+		for(Scope scope : includeScopes) {
+			if(scope.match(className)) {
 				return true;
 			}
 		}
@@ -151,9 +159,8 @@ public class AppHandler extends AbstractHandler {
 	
 	private boolean exscopeMatcher(String className) {
 		className = className.replaceAll("/", ".");
-		List<String> esl = AgentOptions.getExScopes();
-		for(String scope : esl) {
-			if(className.startsWith(scope)) {
+		for(Scope scope : excludeScopes) {
+			if(scope.match(className)) {
 				return true;
 			}
 		}
@@ -162,5 +169,35 @@ public class AppHandler extends AbstractHandler {
 	
 	public int getPriority() {
 		return 99;
+	}
+	
+	//can both use String or regexString as scope
+	private class Scope {
+		//ignore . and $ , because they are legal characters in Class name
+		private Pattern isRegex = Pattern.compile("[\\^*?+\\-{}\\[\\]\\|\\\\]");
+		
+		private Pattern regex = null;
+		private String nomalString = null;
+		
+		private Scope(String s) {
+			Matcher m = isRegex.matcher(s);
+			if(m.find()) {
+				//s = s.replace(".", "\\."); //treat . as normal . in regex and nomal string both
+				s = s.replace("$", "\\$");
+				regex = Pattern.compile(s);
+			}else {
+				nomalString = s;
+			}
+		}
+		
+		private boolean match(String className) {
+			if(regex != null) {
+				Matcher m = regex.matcher(className);
+				return m.find();
+			}else {
+				return className.startsWith(nomalString);
+			}
+		}
+		
 	}
 }

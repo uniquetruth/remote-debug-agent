@@ -24,8 +24,10 @@ jar {
     }
 }
 
-tasks.withType(JavaCompile) {  
-    options.encoding = "UTF-8"  
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 // In this section you declare where to find the dependencies of your project
