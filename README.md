@@ -37,7 +37,7 @@ Of course, you can use this agent in your local java program. It collects debug 
 _This agent supports other JVM languages too, I've tried with Scala and Groovy, it works perfectly. If anyone familiar with Play or Grail and want to build a cool remote debug tool for those frameworks, we can do it together._  
 
 ## Advance Usage
-**How to make this agent be compatible with more framworks**  
+**How to make this agent be compatible with more frameworks**  
 I also have provided an easy way to support more frameworks(based on HttpServlet). For example, you have a web application that uses com.foo.bar.MyServlet as core frame. To use this agent in your application, just write a class extends com.github.rdagent.transformer.handler.DefaultServletAdatper, override injectClassNameList() method, make it return a List contains String value "com.foo.bar.MyServlet". Pack this class into a jar file, put it beside remote-debug-agent.jar, and done. You have already been able to debug your application remotely.  
   
 **How to use it in the internet environment**  
