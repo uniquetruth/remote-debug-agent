@@ -1,6 +1,6 @@
 # remote-debug-agent
  
-A java agent which lets you debug your web application remotely. It's very useful in integration tests.  
+A java agent which allows you to debug your web application remotely. It's very useful in integration tests.  
 ## How to use:  
 Add this agent to your application's JAVA_OPTS, do testing actions(click a button or invoke an interface) normally, send a request to the custom port, and get debug information of the program that just ran. Here are the details:  
 
