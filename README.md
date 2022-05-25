@@ -42,4 +42,4 @@ I also have provided an easy way to support more frameworks(based on HttpServlet
   
 **How to use it in the internet environment**  
 By default, this agent uses the client's IP address as threads' identification to distinguish different invokers, so that many testers can debug remotely in the integration environment at the same time. But if you work in the internet environment or can't fix your IP address for any reason, this default way may not be enough.
-Like **How to make this agent be compatible with more framworks** chapter, you can easily solve this problem by extending DefaultServletAdatper too. Override extractIdentity() method and use getHttpXXX(e.g. getHttpHeader()) method to get other information in the request, you can use any String as the thread's identification.  
+Like **How to make this agent be compatible with more frameworks** chapter, you can easily solve this problem by extending DefaultServletAdatper too. Override extractIdentity() method and use getHttpXXX(e.g. getHttpHeader()) method to get other information in the request, you can use any String as the thread's identification.  
