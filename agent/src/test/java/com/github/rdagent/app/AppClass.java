@@ -1,4 +1,4 @@
-package com.github.rdagent.test;
+package com.github.rdagent.app;
 
 public class AppClass {
 

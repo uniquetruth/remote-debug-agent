@@ -1,4 +1,4 @@
-package com.github.rdagent.test;
+package com.github.rdagent.app;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
