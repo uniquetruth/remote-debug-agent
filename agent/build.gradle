@@ -50,6 +50,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-web:2.6.2'
     testImplementation 'com.squareup.okhttp3:okhttp:4.9.3'
     testImplementation 'junit:junit:4.13'
+    testImplementation 'com.google.code.gson:gson:2.8.9'
 }
 
 task copyJars(type:Copy, dependsOn:jar) {

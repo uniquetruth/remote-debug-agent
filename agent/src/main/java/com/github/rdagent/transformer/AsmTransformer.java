@@ -74,6 +74,7 @@ public class AsmTransformer implements ClassFileTransformer {
 			}
 			for(int i=0;i<hanlderList.size();i++) {
 				if(hanlderList.get(i).filterClassName(className)) {
+					System.out.println("uniqueT debug +++ name : "+className);
 					return hanlderList.get(i).process(className, classfileBuffer);
 				}
 			}

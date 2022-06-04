@@ -18,26 +18,39 @@ public class AgentServer {
 		int port = AgentOptions.getApiPort();
 		if(port > 0) {
 			//use daemon thread to run jetty server
-			Thread asThread = new Thread(new Runnable() {
+			/*Thread asThread = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					server = new Server(port);
 					//System.out.println("agent server start at port : "+AgentOptions.getApiPort());
 					server.setHandler(createHandlers());
-					server.setStopAtShutdown(false);
+					server.setStopAtShutdown(true);
 					//server.setAttribute("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.StdErrLog");
 					//server.setAttribute("org.eclipse.jetty.LEVEL", "INFO");
 			        // start server
 			        try {
 						server.start();
+						server.join();
 					} catch (Exception e) {
 						System.err.println("start agent server failed. "+e.getMessage());
 					}
-			        //server.join();
+			        System.out.println("agent server start at port : "+AgentOptions.getApiPort());
 				}
 			});
-			asThread.setDaemon(true);
-			asThread.start();
+			//asThread.setDaemon(true);
+			asThread.start();*/
+			server = new Server(port);
+			server.setHandler(createHandlers());
+			server.setStopAtShutdown(true);
+			try {
+				System.out.println("agent server start at port : "+AgentOptions.getApiPort());
+				server.start();
+				System.out.println("agent server before join ");
+				//server.join();
+				System.out.println("agent server after join ");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	

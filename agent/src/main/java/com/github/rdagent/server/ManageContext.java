@@ -28,6 +28,8 @@ public class ManageContext extends AbstractHandler{
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServletException {
+		System.out.println("ClassLoader: "+this.getClass().getClassLoader());
+		System.out.println("ContextClassLoader: "+Thread.currentThread().getContextClassLoader());
 		response.setContentType("text/html;charset=utf-8");
 		response.setStatus(HttpServletResponse.SC_OK);
 		baseRequest.setHandled(true);

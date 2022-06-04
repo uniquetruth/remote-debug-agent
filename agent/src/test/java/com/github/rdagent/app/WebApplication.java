@@ -18,6 +18,7 @@ public class WebApplication implements WebServerFactoryCustomizer<ConfigurableSe
 		SpringApplication application = new SpringApplication(WebApplication.class);
 		application.setBannerMode(Banner.Mode.OFF);
 		application.run(args);
+		System.out.println("web app started");
 	}
 
 	@Override
