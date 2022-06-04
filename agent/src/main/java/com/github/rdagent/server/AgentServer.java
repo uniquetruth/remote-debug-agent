@@ -46,7 +46,7 @@ public class AgentServer {
 				System.out.println("agent server start at port : "+AgentOptions.getApiPort());
 				server.start();
 				System.out.println("agent server before join ");
-				//server.join();
+				server.join();
 				System.out.println("agent server after join ");
 			} catch (Exception e) {
 				e.printStackTrace();
