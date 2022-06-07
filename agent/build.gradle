@@ -10,7 +10,7 @@
 //apply plugin: 'java-library'
 //apply plugin: 'org.gretty'
 plugins{
-	id 'java-library'
+    id 'java-library'
 }
 
 jar {
@@ -40,13 +40,13 @@ repositories {
 }
 
 dependencies {
-	compileOnly files("${System.properties['java.home']}/../lib/tools.jar")
-	compileOnly 'org.ow2.asm:asm:9.0'
-	compileOnly 'org.ow2.asm:asm-tree:9.0'
-	compileOnly 'org.ow2.asm:asm-commons:9.0'
-	compileOnly 'com.google.code.gson:gson:2.8.9'
-	compileOnly 'org.eclipse.jetty:jetty-server:9.4.9.v20180320'
-	compileOnly 'org.eclipse.jetty:jetty-servlet:9.4.9.v20180320'
+    compileOnly files("${System.properties['java.home']}/../lib/tools.jar")
+    compileOnly 'org.ow2.asm:asm:9.0'
+    compileOnly 'org.ow2.asm:asm-tree:9.0'
+    compileOnly 'org.ow2.asm:asm-commons:9.0'
+    compileOnly 'com.google.code.gson:gson:2.8.9'
+    compileOnly 'org.eclipse.jetty:jetty-server:9.4.9.v20180320'
+    compileOnly 'org.eclipse.jetty:jetty-servlet:9.4.9.v20180320'
 	
     testImplementation 'org.springframework.boot:spring-boot-starter-web:2.6.2'
     testImplementation 'com.squareup.okhttp3:okhttp:4.9.3'
@@ -55,17 +55,17 @@ dependencies {
 }
 
 task copyJars(type:Copy, dependsOn:jar) {
-	exclude('tools.jar')
-	from configurations.compileClasspath
-	into 'build/libs'
+    exclude('tools.jar')
+    from configurations.compileClasspath
+    into 'build/libs'
 }
 
 task agentTest(type: JavaExec, dependsOn:[ copyJars, testClasses]) {
-	def agentPath = '-javaagent:./build/libs/remote-debug-agent.jar'
-	def premainArgs = '=includes=com.github.rdagent.app,outputdir=.,apiport=0,dependIP=false'
-	classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
-	main = 'com.github.rdagent.app.AppClass'
-	jvmArgs = [ agentPath+premainArgs, '-Drdagent.trace=true', '-Drdagent.trace.lines=true' ]
+    def agentPath = '-javaagent:./build/libs/remote-debug-agent.jar'
+    def premainArgs = '=includes=com.github.rdagent.app,outputdir=.,apiport=0,dependIP=false'
+    classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
+    main = 'com.github.rdagent.app.AppClass'
+    jvmArgs = [ agentPath+premainArgs, '-Drdagent.trace=true', '-Drdagent.trace.lines=true' ]
 }
 
 //run test Application in another JVM
@@ -80,9 +80,9 @@ abstract class AsyncJavaExec extends DefaultTask{
     
     @TaskAction
     def asyncRun(){
-	    def m = main.get()
-	    def jvmArgs = jvmArgs.get()
-	    def args = args.get()
+        def m = main.get()
+        def jvmArgs = jvmArgs.get()
+        def args = args.get()
         def command = ['java'].toList()
         command.addAll(jvmArgs)
         command.add(m)
@@ -97,11 +97,11 @@ abstract class AsyncJavaExec extends DefaultTask{
 
 task runWebApp(type: AsyncJavaExec, dependsOn: [copyJars, testClasses]){
     def agentPath = '-javaagent:./build/libs/remote-debug-agent.jar'
-	def premainArgs = '=includes=com.github.rdagent.app,outputdir=.,apiport=8098,dependIP=true'
-	def classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
-	main = 'com.github.rdagent.app.WebApplication'
-	jvmArgs = [ '-cp', classpath.asPath, agentPath+premainArgs, '-Dlogging.level.root=info' ]
-	args = ['test.log']
+    def premainArgs = '=includes=com.github.rdagent.app,outputdir=.,apiport=8098,dependIP=true'
+    def classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
+    main = 'com.github.rdagent.app.WebApplication'
+    jvmArgs = [ '-cp', classpath.asPath, agentPath+premainArgs, '-Dlogging.level.root=info' ]
+    args = ['test.log']
     doLast {
         Thread.sleep(3000)
         println('async java task started')

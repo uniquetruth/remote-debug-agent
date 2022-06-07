@@ -30,11 +30,12 @@ For now, this agent supports some popular frameworks:
 + Frameworks and middlewares that use standard java servlet, like Spring, Tomcat and so on.
 + Struts2
 + Dubbo
-+ Rabbitmq  
++ Rabbitmq
++ Grails(yes, this agent supports other JVM languages)  
 
 Of course, you can use this agent in your local java program. It collects debug information and dumps them into a file after the main thread stoped.  
   
-_This agent supports other JVM languages too, I've tried with Scala and Groovy, it works perfectly. If anyone familiar with Play or Grail and want to build a cool remote debug tool for those frameworks, we can do it together._  
+_This agent supports other JVM languages too, I'm sure that it works with Scala perfectly. If anyone familiar with Play or other frameworks and want to build a cool remote debug tool for them, we can do it together._  
 
 ## Advance Usage
 **How to make this agent be compatible with more frameworks**  
