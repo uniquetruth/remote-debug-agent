@@ -10,29 +10,28 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.github.rdagent.AgentOptions;
 import com.github.rdagent.common.CoverageSnapshot;
 import com.github.rdagent.transformer.AsmTransformer;
 import com.github.rdagent.transformer.intercepter.IPmap;
 
-public class ManageContext extends AbstractHandler{
+public class ManageContext extends HttpServlet{
 	
+	private static final long serialVersionUID = -7774566608957738333L;
+
 	@Override
-	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServletException {
-		System.out.println("ClassLoader: "+this.getClass().getClassLoader());
-		System.out.println("ContextClassLoader: "+Thread.currentThread().getContextClassLoader());
 		response.setContentType("text/html;charset=utf-8");
 		response.setStatus(HttpServletResponse.SC_OK);
-		baseRequest.setHandled(true);
 		String allowMethod = "all allowed reqests are:\n"+
 				"/manage/dump : dump all coverage data into tracelog file\n"+
 				"/manage/clean : clean?ip=ip1&ip=ip2 : remove coverage data invoked by specific IP. (BE CAREFUL, if no ip parameter, all records will be removed)\n"+
@@ -40,36 +39,25 @@ public class ManageContext extends AbstractHandler{
 		response.getWriter().println(allowMethod);
 	}
 	
-	public static HandlerCollection getManageHandlers() {
-		HandlerCollection collection = new HandlerCollection();
-		ManageContext context = new ManageContext();
+	public static ContextHandler getManageHandlers() {
+		ServletContextHandler context = new ServletContextHandler();
+		context.setContextPath("/manage");
+		ManageContext root = new ManageContext();
+		context.addServlet(new ServletHolder(root), "/");
 		
-		ContextHandler dumpContext = new ContextHandler();
-		dumpContext.setContextPath("/manage/dump");
-		dumpContext.setHandler(context.new Dump());
-		collection.addHandler(dumpContext);
+		context.addServlet(new ServletHolder(root.new Dump()),"/dump");
+		context.addServlet(new ServletHolder(root.new Clean()),"/clean");
+		context.addServlet(new ServletHolder(root.new Detach()),"/detach");
 		
-		ContextHandler cleanContext = new ContextHandler();
-		cleanContext.setContextPath("/manage/clean");
-		cleanContext.setHandler(context.new Clean());
-		collection.addHandler(cleanContext);
-		
-		ContextHandler detachContext = new ContextHandler();
-		detachContext.setContextPath("/manage/detach");
-		detachContext.setHandler(context.new Detach());
-		collection.addHandler(detachContext);
-		
-		ContextHandler defaultContext = new ContextHandler();
-		defaultContext.setContextPath("/manage");
-		defaultContext.setHandler(context);
-		collection.addHandler(defaultContext);
-		
-		return collection;
+		return context;
 	}
 	
-	private class Dump extends AbstractHandler{
+	private class Dump extends HttpServlet{
+		
+		private static final long serialVersionUID = -6797416643857568314L;
+
 		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+		protected void doGet(HttpServletRequest request, HttpServletResponse response)
 				throws IOException, ServletException {
 			System.out.println("manage handler log : "+request.getRemoteAddr()+" begin to dump coverage file");
 			response.setContentType("text/html;charset=utf-8");
@@ -105,18 +93,19 @@ public class ManageContext extends AbstractHandler{
 					}
 				}
 			}
-			baseRequest.setHandled(true);
 			response.getWriter().println("coverage data dump success in:"+f.getAbsolutePath());
 			System.out.println("manage handler log : dump success.");
 		}
 	}
 	
-	private class Clean extends AbstractHandler{
+	private class Clean extends HttpServlet{
+		
+		private static final long serialVersionUID = -743409024040693996L;
+
 		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+		protected void doGet(HttpServletRequest request, HttpServletResponse response)
 				throws IOException, ServletException {
 			response.setContentType("text/html;charset=utf-8");
-			baseRequest.setHandled(true);
 			List<String> ipList = ServerUtil.getQueryParamList(request, "ip");
 			if(ipList.size()==0) {
 				IPmap.clean();
@@ -138,9 +127,12 @@ public class ManageContext extends AbstractHandler{
 		}
 	}
 	
-	private class Detach extends AbstractHandler{
+	private class Detach extends HttpServlet{
+		
+		private static final long serialVersionUID = -1769900441937239415L;
+
 		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+		protected void doGet(HttpServletRequest request, HttpServletResponse response)
 				throws IOException, ServletException {
 			System.out.println("begin to detach needle");
 			AsmTransformer atf = (AsmTransformer)AgentOptions.getTransformer();
@@ -166,7 +158,6 @@ public class ManageContext extends AbstractHandler{
 			shutdownThread.start();
 			Runtime.getRuntime().removeShutdownHook(AgentOptions.getSDHook());
 			
-			baseRequest.setHandled(true);
 			response.getWriter().println("agent detached");
 			System.out.println("agent detached");
 		}

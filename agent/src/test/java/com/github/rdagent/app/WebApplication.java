@@ -14,7 +14,9 @@ import org.springframework.context.annotation.ComponentScan;
 public class WebApplication implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
 
 	public static void main(String[] args) throws Exception {
-		System.setOut(new PrintStream(args[0]));
+		PrintStream ps = new PrintStream(args[0]);
+		System.setOut(ps);
+		System.setErr(ps);
 		SpringApplication application = new SpringApplication(WebApplication.class);
 		application.setBannerMode(Banner.Mode.OFF);
 		application.run(args);

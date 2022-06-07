@@ -2,25 +2,26 @@ package com.github.rdagent.server;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.github.rdagent.common.Util;
 import com.github.rdagent.transformer.intercepter.IPmap;
 
-public class TraceContext extends AbstractHandler{
+public class TraceContext extends HttpServlet{
 	
+	private static final long serialVersionUID = 6886649308109133528L;
+
 	@Override
-	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServletException {
 		response.setContentType("text/html;charset=utf-8");
 		response.setStatus(HttpServletResponse.SC_OK);
-		baseRequest.setHandled(true);
 		String allowMethod = "all allowed reqests are:\n"+
 				"/trace/start : start tracing methods invoked by yourself\n"+
 				"/trace/stop : stop tracing\n"+
@@ -29,68 +30,58 @@ public class TraceContext extends AbstractHandler{
 		response.getWriter().println(allowMethod);
 	}
 	
-	public static HandlerCollection getTraceHandlers() {
-		HandlerCollection collection = new HandlerCollection();
-		TraceContext context = new TraceContext();
+	public static ContextHandler getTraceHandlers() {
+		ServletContextHandler context = new ServletContextHandler();
+		context.setContextPath("/trace");
+		TraceContext root = new TraceContext();
+		context.addServlet(new ServletHolder(root), "/");
 		
-		ContextHandler startContext = new ContextHandler();
-		startContext.setContextPath("/trace/start");
-		startContext.setHandler(context.new Start());
-		collection.addHandler(startContext);
+		context.addServlet(new ServletHolder(root.new Start()), "/start");
+		context.addServlet(new ServletHolder(root.new Stop()), "/stop");
+		context.addServlet(new ServletHolder(root.new List()), "/list");
+		context.addServlet(new ServletHolder(root.new Clean()), "/clean");
 		
-		ContextHandler stopContext = new ContextHandler();
-		stopContext.setContextPath("/trace/stop");
-		stopContext.setHandler(context.new Stop());
-		collection.addHandler(stopContext);
-		
-		ContextHandler listContext = new ContextHandler();
-		listContext.setContextPath("/trace/list");
-		listContext.setHandler(context.new List());
-		collection.addHandler(listContext);
-		
-		ContextHandler cleanContext = new ContextHandler();
-		cleanContext.setContextPath("/trace/clean");
-		cleanContext.setHandler(context.new Clean());
-		collection.addHandler(cleanContext);
-		
-		ContextHandler defaultContext = new ContextHandler();
-		defaultContext.setContextPath("/trace");
-		defaultContext.setHandler(context);
-		collection.addHandler(defaultContext);
-		
-		return collection;
+		return context;
 	}
 	
-	private class Start extends AbstractHandler{
+	private class Start extends HttpServlet {
+		
+		private static final long serialVersionUID = 5041423964138330918L;
+
 		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+		protected void doGet(HttpServletRequest request, HttpServletResponse response)
 				throws IOException, ServletException {
 			response.setContentType("text/html;charset=utf-8");
 			String ip = ServerUtil.getIpAddr(request);
 			//System.out.println("trace start: "+ip);
 			IPmap.startTracing(ip);
 			response.setStatus(HttpServletResponse.SC_OK);
-			baseRequest.setHandled(true);
+			//baseRequest.setHandled(true);
 			response.getWriter().println("tracing started");
 		}
 	}
 	
-	private class Stop extends AbstractHandler{
+	private class Stop extends HttpServlet{
+		
+		private static final long serialVersionUID = 7396468202564792422L;
+
 		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+		protected void doGet(HttpServletRequest request, HttpServletResponse response)
 				throws IOException, ServletException {
 			response.setContentType("text/html;charset=utf-8");
 			String ip = ServerUtil.getIpAddr(request);
 			IPmap.stopTracing(ip);
 			response.setStatus(HttpServletResponse.SC_OK);
-			baseRequest.setHandled(true);
 			response.getWriter().println("tracing stoped");
 		}
 	}
 	
-	private class List extends AbstractHandler{
+	private class List extends HttpServlet{
+		
+		private static final long serialVersionUID = 590326902299602880L;
+
 		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+		protected void doGet(HttpServletRequest request, HttpServletResponse response)
 				throws IOException, ServletException {
 			response.setContentType("text/html;charset=utf-8");
 			String ip = ServerUtil.getIpAddr(request);
@@ -98,20 +89,21 @@ public class TraceContext extends AbstractHandler{
 			String timecost = ServerUtil.getQueryParam(request, "timecost");
 			String coverage = ServerUtil.getQueryParam(request, "coverage");
 			response.setStatus(HttpServletResponse.SC_OK);
-			baseRequest.setHandled(true);
 			response.getWriter().println(Util.getJsonTrace(ip, "true".equals(timecost), "true".equals(coverage)));
 		}
 	}
 	
-	private class Clean extends AbstractHandler{
+	private class Clean extends HttpServlet{
+		
+		private static final long serialVersionUID = -7556777885231059208L;
+
 		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+		protected void doGet(HttpServletRequest request, HttpServletResponse response)
 				throws IOException, ServletException {
 			response.setContentType("text/html;charset=utf-8");
 			String ip = ServerUtil.getIpAddr(request);
 			IPmap.cleanTracing(ip);
 			response.setStatus(HttpServletResponse.SC_OK);
-			baseRequest.setHandled(true);
 			response.getWriter().println("clean done");
 		}
 	}

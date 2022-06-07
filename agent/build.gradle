@@ -46,6 +46,7 @@ dependencies {
 	compileOnly 'org.ow2.asm:asm-commons:9.0'
 	compileOnly 'com.google.code.gson:gson:2.8.9'
 	compileOnly 'org.eclipse.jetty:jetty-server:9.4.9.v20180320'
+	compileOnly 'org.eclipse.jetty:jetty-servlet:9.4.9.v20180320'
 	
     testImplementation 'org.springframework.boot:spring-boot-starter-web:2.6.2'
     testImplementation 'com.squareup.okhttp3:okhttp:4.9.3'
