@@ -25,30 +25,39 @@ public class HttpReqInterceptor {
 		 */
 		try {
 			String ipAddress = getCustomIdentity(request);
-			if(ipAddress != null && !"".equals(ipAddress) && AgentOptions.isDependIP()) {
-				//check if thread has already been binded
-				if(IPmap.getIpMap().containsKey(Thread.currentThread())){
-					//ip is the lowest priority identification
-					String oldIp = IPmap.getIpMap().get(Thread.currentThread());
-					Matcher m = p.matcher(oldIp);
-					//if formal binding is an ip, use this identification to override it
-					if(m.find()) {
-						IPmap.bindIP(ipAddress);
-					}else {
-						//don't override identification, just add binding counter
-						IPmap.increaseBindCount(); 
-					}
-				}else {
-					IPmap.bindIP(ipAddress);
-				}
-			}else {
-				IPmap.increaseBindCount();
-			}
+			bindIP(ipAddress);
 		}catch(Exception e) {
 			System.err.println("HttpReqInterceptor Exception : "+e.getMessage());
 			e.printStackTrace();
 		}
 		return;
+	}
+	
+	public static void bindIP(String ipAddress) {
+		try {
+			if (ipAddress != null && !"".equals(ipAddress) && AgentOptions.isDependIP()) {
+				// check if thread has already been binded
+				if (IPmap.getIpMap().containsKey(Thread.currentThread())) {
+					// ip is the lowest priority identification
+					String oldIp = IPmap.getIpMap().get(Thread.currentThread());
+					Matcher m = p.matcher(oldIp);
+					// if formal binding is an ip, use this identification to override it
+					if (m.find()) {
+						IPmap.bindIP(ipAddress);
+					} else {
+						// don't override identification, just add binding counter
+						IPmap.increaseBindCount();
+					}
+				} else {
+					IPmap.bindIP(ipAddress);
+				}
+			} else {
+				IPmap.increaseBindCount();
+			}
+		} catch (Exception e) {
+			System.err.println("HttpReqInterceptor Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	private static String getCustomIdentity(Object request) {

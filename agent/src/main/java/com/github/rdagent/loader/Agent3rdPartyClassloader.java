@@ -6,6 +6,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +15,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -31,6 +34,7 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 	private String thisJar;
 	private ClassLoader parent;
 	private Map<File, HashSet<String>> jarEntryCache = new HashMap<File, HashSet<String>>();
+	private Map<File, HashSet<String>> resourceEntryCache = new HashMap<File, HashSet<String>>();
 	private Set<Class<?>> selfRegisterClasses = new HashSet<Class<?>>();
 	private static Agent3rdPartyClassloader cl;
 	
@@ -69,9 +73,12 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 		for(File f : d.listFiles()) {
 			//System.out.println("jar name : "+f.getName());
 			if(f.getName().endsWith(".jar")) {
-				HashSet<String> set = scanPackages(f);
-				if(set != null) {
-					jarEntryCache.put(f, set);
+				HashSet<String>[] sets = scanPackages(f);
+				if(sets[0].size() > 0) {
+					jarEntryCache.put(f, sets[0]);
+				}
+				if(sets[1].size() > 0) {
+					resourceEntryCache.put(f, sets[1]);
 				}
 			}
 		}
@@ -103,18 +110,25 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 		return false;
 	}
 	
-	private HashSet<String> scanPackages(File jarFile){
+	private HashSet<String>[] scanPackages(File jarFile){
+		@SuppressWarnings("unchecked")
+		HashSet<String>[] result = new HashSet[2];
 		JarFile jFile = null;
-		HashSet<String> result= new HashSet<String>();
+		HashSet<String> classResult= new HashSet<String>();
+		HashSet<String> resourceResult= new HashSet<String>();
 		try {
 			jFile = new JarFile(jarFile);
 			Enumeration<JarEntry> entries = jFile.entries();
 			while(entries.hasMoreElements()) {
 				JarEntry e = entries.nextElement();
 				if(e.getName().endsWith(".class")) {
-					result.add(e.getName());
+					classResult.add(e.getName());
+				}else if(!e.getName().endsWith("/")){
+					resourceResult.add(e.getName());
 				}
 			}
+			result[0] = classResult;
+			result[1] = resourceResult;
 			return result;
 		}catch(IOException e) {
 			return null;
@@ -470,6 +484,53 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 
 	public Set<Class<?>> getSelfRegisterClasses() {
 		return selfRegisterClasses;
+	}
+	
+	public URL getResource(String name) {
+        URL url = findResource(name);
+        if(url == null) {
+        	if(parent != null) {
+        		url = parent.getResource(name);
+        	}else {
+        		url = super.getResource(name);
+        	}
+        }
+        return url;
+    }
+	
+	public Enumeration<URL> getResources(String name) throws IOException {
+        return findResources(name);
+    }
+	
+	protected URL findResource(String name) {
+		//System.out.println("find resource: "+name);
+		File f = isInResourceCache(name);
+		if(f != null) {
+			try {
+				return new URL("jar:file:"+f.getAbsolutePath()+"!/"+name);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
+        return null;
+    }
+	
+	private File isInResourceCache(String name) {
+		Iterator<Entry<File, HashSet<String>>> it = resourceEntryCache.entrySet().iterator();
+		while(it.hasNext()) {
+			Entry<File, HashSet<String>> e = it.next();
+			if(e.getValue().contains(name)) {
+				return e.getKey();
+			}
+		}
+		return null;
+	}
+	
+	protected Enumeration<URL> findResources(String name) throws IOException {
+		Vector<URL> resource = new Vector<URL>();
+		resource.add(findResource(name));
+		
+		return resource.elements();
 	}
 
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import com.github.rdagent.AgentOptions;
 import com.github.rdagent.loader.Agent3rdPartyClassloader;
 import com.github.rdagent.transformer.handler.AppHandler;
+import com.github.rdagent.transformer.handler.PlayHandler;
 import com.github.rdagent.transformer.handler.DefaultServletAdatper;
 import com.github.rdagent.transformer.handler.DubboHandler;
 import com.github.rdagent.transformer.handler.FeignHandler;
@@ -31,6 +32,7 @@ public class AsmTransformer implements ClassFileTransformer {
 		registerHandler(new HystrixClientHandler());
 		registerHandler(new SpringSimpleClientHandler());
 		registerHandler(new SpringRabbitHandler());
+		registerHandler(new PlayHandler());
 		//registerHandler(new ServletHandler());
 		//registerHandler(new Struts2Handler());
 		
