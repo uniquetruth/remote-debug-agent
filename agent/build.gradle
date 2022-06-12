@@ -103,7 +103,6 @@ task runWebApp(type: AsyncJavaExec, dependsOn: [copyJars, testClasses]){
     jvmArgs = [ '-cp', classpath.asPath, agentPath+premainArgs, '-Dlogging.level.root=info' ]
     args = ['test.log']
     doLast {
-        Thread.sleep(3000)
         println('async java task started')
     }
 }

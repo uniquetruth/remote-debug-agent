@@ -17,8 +17,20 @@ public class RemoteTest {
 	private static OkHttpClient client;
 	
 	@BeforeClass
-	public static void prepareClient(){
+	public static void prepareClient() throws InterruptedException{
 		client = new OkHttpClient();
+		//wait for server's port is ready
+		Request request = new Request.Builder()
+			      .url("http://127.0.0.1:8080/")
+			      .build();
+		Response response = null;
+		do {
+			try {
+				response = client.newCall(request).execute();
+			}catch(IOException e) {
+				Thread.sleep(1000);
+			}
+		}while(response == null);
 	}
 	
 	@Test
