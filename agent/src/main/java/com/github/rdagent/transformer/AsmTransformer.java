@@ -33,8 +33,6 @@ public class AsmTransformer implements ClassFileTransformer {
 		registerHandler(new SpringSimpleClientHandler());
 		registerHandler(new SpringRabbitHandler());
 		registerHandler(new PlayHandler());
-		//registerHandler(new ServletHandler());
-		//registerHandler(new Struts2Handler());
 		
 		//register custom handler
 		for(Class<?> c : Agent3rdPartyClassloader.getClassloader().getSelfRegisterClasses()) {
@@ -77,7 +75,7 @@ public class AsmTransformer implements ClassFileTransformer {
 			}
 			for(int i=0;i<hanlderList.size();i++) {
 				if(hanlderList.get(i).filterClassName(className)) {
-					return hanlderList.get(i).process(className, classfileBuffer);
+					return hanlderList.get(i).process(className, classfileBuffer, loader);
 				}
 			}
 		} catch (Exception e) {

@@ -77,11 +77,11 @@ public abstract class DefaultServletAdatper extends AbstractHandler {
 	}
 
 	@Override
-	public final byte[] process(String _className, byte[] _classfileBuffer) {
+	public final byte[] process(String _className, byte[] _classfileBuffer, ClassLoader loader) {
 		ClassReader cr = new ClassReader(_classfileBuffer);
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        ServletVisitor tv = new ServletVisitor(Constants.asmApiVersion, cw, getMethodName(), getReqInext());
-        cr.accept(tv, ClassReader.EXPAND_FRAMES);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		ServletVisitor tv = new ServletVisitor(Constants.asmApiVersion, cw, getMethodName(), getReqInext());
+		cr.accept(tv, ClassReader.EXPAND_FRAMES);
 		return cw.toByteArray();
 	}
 	

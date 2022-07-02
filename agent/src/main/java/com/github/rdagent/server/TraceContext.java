@@ -88,8 +88,9 @@ public class TraceContext extends HttpServlet{
 			System.out.println("trace list: "+ip);
 			String timecost = ServerUtil.getQueryParam(request, "timecost");
 			String coverage = ServerUtil.getQueryParam(request, "coverage");
+			String sql = ServerUtil.getQueryParam(request, "sql");
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.getWriter().println(Util.getJsonTrace(ip, "true".equals(timecost), "true".equals(coverage)));
+			response.getWriter().println(Util.getJsonTrace(ip, "true".equals(timecost), "true".equals(coverage), "true".equals(sql)));
 		}
 	}
 	

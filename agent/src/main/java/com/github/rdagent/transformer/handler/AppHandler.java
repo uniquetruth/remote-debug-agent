@@ -126,7 +126,7 @@ public class AppHandler extends AbstractHandler {
 	}
 
 	@Override
-	public byte[] process(String className, byte[] classfileBuffer) {
+	public byte[] process(String className, byte[] classfileBuffer, ClassLoader loader) {
 		//analyse class, build methodLineMap and methodOffsetMap
     	if(!analyseClass(classfileBuffer, className)) {
     		return null;

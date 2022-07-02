@@ -20,8 +20,9 @@ public interface TransformHandler {
 	 * see also {@link java.lang.instrument.ClassFileTransformer#transform}
 	 * @param _className
 	 * @param _classfileBuffer
+	 * @param loader
 	 * @return
 	 */
-	public byte[] process(String _className, byte[] _classfileBuffer);
+	public byte[] process(String _className, byte[] _classfileBuffer, ClassLoader loader);
 
 }

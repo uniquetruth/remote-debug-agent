@@ -343,5 +343,45 @@ public class IPmap{
 	public static Map<String, LinkedList<TraceVo>> getTraceMap() {
 		return traceMap;
 	}
+	
+	public static void traceSql(String sql) {
+		String ip ;
+		if(AgentOptions.isDependIP()) {
+			ip = ipMap.get(Thread.currentThread());
+		}else {
+			ip = Constants.virtualIp;
+		}
+		List<TraceVo> list = traceMap.get(ip);
+		//stack data structure
+		TraceVo vo = null;
+		for(int i=list.size()-1;i>=0;i--) {
+			vo = list.get(i);
+			if(vo.getDeep() == traceSwitchMap.get(ip)-1) {
+				break;
+			}
+		}
+		vo.getSqlList().add(sql);
+	}
+	
+	public static void updateSql(String sql) {
+		String ip ;
+		if(AgentOptions.isDependIP()) {
+			ip = ipMap.get(Thread.currentThread());
+		}else {
+			ip = Constants.virtualIp;
+		}
+		List<TraceVo> list = traceMap.get(ip);
+		//stack data structure
+		TraceVo vo = null;
+		for(int i=list.size()-1;i>=0;i--) {
+			vo = list.get(i);
+			if(vo.getDeep() == traceSwitchMap.get(ip)-1) {
+				break;
+			}
+		}
+		List<String> sqls = vo.getSqlList();
+		sqls.remove(sqls.size()-1);
+		sqls.add(sql);
+	}
 
 }

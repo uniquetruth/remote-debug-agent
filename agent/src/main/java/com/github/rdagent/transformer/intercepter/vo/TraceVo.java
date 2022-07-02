@@ -1,5 +1,8 @@
 package com.github.rdagent.transformer.intercepter.vo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.github.rdagent.annontation.BothUsing;
 
 @BothUsing
@@ -12,6 +15,7 @@ public class TraceVo {
 	private long startTime = 0;
 	private long endTime = 0;
 	private boolean[] coverage = null;
+	private List<String> sqlList = new ArrayList<String>();
 	
 	public String getMethod() {
 		return method;
@@ -57,6 +61,9 @@ public class TraceVo {
 		for(int i=0;i<coverage.length;i++) {
 			this.coverage[i] = coverage[i];
 		}
+	}
+	public List<String> getSqlList() {
+		return sqlList;
 	}
 
 }

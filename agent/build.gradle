@@ -52,15 +52,16 @@ dependencies {
     testImplementation 'com.squareup.okhttp3:okhttp:4.9.3'
     testImplementation 'junit:junit:4.13'
     testImplementation 'com.google.code.gson:gson:2.8.9'
+    testImplementation 'mysql:mysql-connector-java:5.1.40'
 }
 
-task copyJars(type:Copy, dependsOn:jar) {
+task copyJars(type:Copy) {
     exclude('tools.jar')
     from configurations.compileClasspath
     into 'build/libs'
 }
 
-task agentTest(type: JavaExec, dependsOn:[ copyJars, testClasses]) {
+task agentTest(type: JavaExec, dependsOn:[ jar, testClasses]) {
     def agentPath = '-javaagent:./build/libs/remote-debug-agent.jar'
     def premainArgs = '=includes=com.github.rdagent.app,outputdir=.,apiport=0,dependIP=false'
     classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
@@ -95,7 +96,7 @@ abstract class AsyncJavaExec extends DefaultTask{
     }
 }
 
-task runWebApp(type: AsyncJavaExec, dependsOn: [copyJars, testClasses]){
+task runWebApp(type: AsyncJavaExec, dependsOn: [jar, testClasses]){
     def agentPath = '-javaagent:./build/libs/remote-debug-agent.jar'
     def premainArgs = '=includes=com.github.rdagent.app,outputdir=.,apiport=8098,dependIP=true'
     def classpath = files('./build/classes/java/test', configurations.testRuntimeClasspath)
@@ -108,3 +109,6 @@ task runWebApp(type: AsyncJavaExec, dependsOn: [copyJars, testClasses]){
 }
 
 test.dependsOn([cleanTest, runWebApp])
+
+jar.dependsOn(copyJars)
+

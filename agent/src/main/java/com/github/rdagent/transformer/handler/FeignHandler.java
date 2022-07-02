@@ -18,11 +18,11 @@ public class FeignHandler extends AbstractHandler {
 	}
 
 	@Override
-	public byte[] process(String className, byte[] classfileBuffer) {
+	public byte[] process(String className, byte[] classfileBuffer, ClassLoader loader) {
 		ClassReader cr = new ClassReader(classfileBuffer);
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        FeignVisitor fv = new FeignVisitor(Constants.asmApiVersion, cw);
-        cr.accept(fv, ClassReader.EXPAND_FRAMES);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		FeignVisitor fv = new FeignVisitor(Constants.asmApiVersion, cw);
+		cr.accept(fv, ClassReader.EXPAND_FRAMES);
 		return cw.toByteArray();
 	}
 	

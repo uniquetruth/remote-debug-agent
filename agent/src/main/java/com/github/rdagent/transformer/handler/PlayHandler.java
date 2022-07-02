@@ -20,7 +20,7 @@ public class PlayHandler extends AbstractHandler {
 	}
 
 	@Override
-	public byte[] process(String _className, byte[] classfileBuffer) {
+	public byte[] process(String _className, byte[] classfileBuffer, ClassLoader loader) {
 		ClassReader cr = new ClassReader(classfileBuffer);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		PlayVisitor pv = new PlayVisitor(Constants.asmApiVersion, cw);

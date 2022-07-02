@@ -18,12 +18,12 @@ public class HystrixClientHandler extends AbstractHandler {
 	}
 
 	@Override
-	public byte[] process(String className, byte[] classfileBuffer) {
+	public byte[] process(String className, byte[] classfileBuffer, ClassLoader loader) {
 		ClassReader cr = new ClassReader(classfileBuffer);
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        HystrixClientVisitor visitor = new HystrixClientVisitor(Constants.asmApiVersion, cw);
-        cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-        return cw.toByteArray();
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		HystrixClientVisitor visitor = new HystrixClientVisitor(Constants.asmApiVersion, cw);
+		cr.accept(visitor, ClassReader.EXPAND_FRAMES);
+		return cw.toByteArray();
 	}
 	
 	public int getPriority() {

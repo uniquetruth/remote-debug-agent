@@ -27,6 +27,10 @@ public class Util {
 		return getJsonTrace(ip, displayTime, false);
 	}
 	
+	public static String getJsonTrace(String ip, boolean displayTime, boolean sql) {
+		return getJsonTrace(ip, displayTime, sql);
+	}
+	
 	/**
 	 * convert List&lt;TraceVo&gt; into json string
 	 * @param l trace list
@@ -34,7 +38,7 @@ public class Util {
 	 * @param coverage 
 	 * @return json string
 	 */
-	public static String getJsonTrace(String ip, boolean displayTime, boolean coverage) {
+	public static String getJsonTrace(String ip, boolean displayTime, boolean coverage, boolean sql) {
 		List<TraceVo> l = IPmap.getTraceMap().get(ip);
 		if(l==null||l.size()==0) {
 			return "[]";
@@ -44,12 +48,12 @@ public class Util {
 		if(coverage) { 
 			snapshot = new CoverageSnapshot();
 		}
-		List<HashMap<String, Object>> result = prepareGeneralObject(l, displayTime, snapshot);
+		List<HashMap<String, Object>> result = prepareGeneralObject(l, displayTime, sql, snapshot);
 		Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 		return gson.toJson(result);
 	}
 	
-	private static List<HashMap<String, Object>> prepareGeneralObject(List<TraceVo> l, boolean displayTime, CoverageSnapshot snapshot) {
+	private static List<HashMap<String, Object>> prepareGeneralObject(List<TraceVo> l, boolean displayTime, boolean sql, CoverageSnapshot snapshot) {
 		List<HashMap<String, Object>> result = new ArrayList<HashMap<String, Object>>();
 		
 		int deep = l.get(0).getDeep();
@@ -67,6 +71,9 @@ public class Util {
 				}
 				if(displayTime) {
 					object.put("cost time", vo.getEndTime() - vo.getStartTime());
+				}
+				if(sql) {
+					object.put("sql", vo.getSqlList());
 				}
 				if(snapshot != null) {
 					boolean[] probe = vo.getCoverage();
@@ -86,7 +93,7 @@ public class Util {
 					}
 					subList.add(l.get(j));
 				}
-				lastO.put("calls", prepareGeneralObject(subList, displayTime, snapshot));
+				lastO.put("calls", prepareGeneralObject(subList, displayTime, sql, snapshot));
 				i = j - 1;
 			}
 		}
