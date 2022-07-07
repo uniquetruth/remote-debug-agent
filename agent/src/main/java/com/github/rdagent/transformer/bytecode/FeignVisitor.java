@@ -35,11 +35,10 @@ public class FeignVisitor extends ClassVisitor {
 		protected void onMethodExit(int opcode) {
 			//load [this]
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
-			mv.visitFieldInsn(Opcodes.GETFIELD, "feign/RequestTemplate", "headers", "Ljava/util/Map;");
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-					"com/github/rdagent/transformer/intercepter/SpringClientIntercepter",
+					"com/github/rdagent/transformer/intercepter/FeignTemplateIntercepter",
 					"addCustomHeader",
-					"(Ljava/util/Map;)V", false);
+					"(Ljava/lang/Object;)V", false);
 		}
 	}
 
