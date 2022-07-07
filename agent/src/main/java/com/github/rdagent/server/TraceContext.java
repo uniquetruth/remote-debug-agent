@@ -25,7 +25,7 @@ public class TraceContext extends HttpServlet{
 		String allowMethod = "all allowed reqests are:\n"+
 				"/trace/start : start tracing methods invoked by yourself\n"+
 				"/trace/stop : stop tracing\n"+
-				"/trace/list : get your tracing result. parameters/default value:[timecost/false, coverage/false]\n"+
+				"/trace/list : get your tracing result. parameters/default value:[timecost/false, coverage/false, sql/false]\n"+
 				"/trace/clean : clean the method list\n";
 		response.getWriter().println(allowMethod);
 	}
