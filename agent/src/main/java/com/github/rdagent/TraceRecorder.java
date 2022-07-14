@@ -58,7 +58,7 @@ public class TraceRecorder extends Thread {
 		FileWriter writer = null;
 		try {
 			String message = Util.getJsonTrace(Constants.virtualIp, AgentOptions.getProcTraceTime(), 
-					AgentOptions.getProcTraceLines());
+					AgentOptions.getProcTraceLines(), AgentOptions.getProcTraceSql());
 			writer = new FileWriter(f, false);
 			if (message != null) {
 				writer.write(message);

@@ -39,6 +39,7 @@ public class AgentOptions {
 	private static boolean procTrace = false;
 	private static boolean procTraceTime = false;
 	private static boolean procTraceLines = false;
+	private static boolean procTraceSql = false;
 	private static boolean procCoverage = false;
 	
 	//for hot-plugging
@@ -68,8 +69,6 @@ public class AgentOptions {
 				exScopes.add(temp);
 			}
 		}
-		//some default excluding
-		exScopes.add("com.github.uniqueT.rdagent");
 		
 		outputDir = getParam(commdArgs, "outputdir=(.+?)(,|$)");
 		if(outputDir == null) { //use directory of agent jar as default
@@ -110,6 +109,9 @@ public class AgentOptions {
 		}
 		if("true".equals(System.getProperty(Constants.procLinesSwitch))) {
 			procTraceLines = true;
+		}
+		if("true".equals(System.getProperty(Constants.procSqlSwitch))) {
+			procTraceSql = true;
 		}
 		if("true".equals(System.getProperty(Constants.procCoverageSwitch))) {
 			procCoverage = true;
@@ -166,6 +168,10 @@ public class AgentOptions {
 	
 	public static boolean getProcTraceLines() {
 		return procTraceLines;
+	}
+	
+	public static boolean getProcTraceSql() {
+		return procTraceSql;
 	}
 	
 	public static boolean getProcCoverage() {

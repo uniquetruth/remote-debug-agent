@@ -37,7 +37,11 @@ public class Constants {
 	 */
 	public static final String procLinesSwitch = "rdagent.trace.lines";
 	/**
-	 * for local program, specify if dump method coverage data
+	 * for local program, specify if dump method sql data
+	 */
+	public static final String procSqlSwitch = "rdagent.trace.sql";
+	/**
+	 * for local program, specify if dump coverage raw data
 	 */
 	public static final String procCoverageSwitch = "rdagent.coverage";
 
