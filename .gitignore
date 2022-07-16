@@ -10,3 +10,5 @@ bin
 agent/bin
 agent/build
 .classpath
+test.log
+.vscode
