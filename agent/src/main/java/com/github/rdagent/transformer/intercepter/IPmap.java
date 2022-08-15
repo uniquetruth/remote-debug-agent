@@ -1,5 +1,7 @@
 package com.github.rdagent.transformer.intercepter;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -276,6 +278,10 @@ public class IPmap{
 			s.append("]");
 		}else if(param instanceof Exception) {
 			s.append("Exception:").append(param.toString());
+		}else if(param instanceof InputStream) {
+			s.append("[InputStream]");
+		}else if(param instanceof OutputStream) {
+			s.append("[OutputStream]");
 		}else if("".equals(param)) {
 			s.append("\"\"");
 		}else {
