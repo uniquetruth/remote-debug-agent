@@ -206,7 +206,7 @@ public class AppHandler extends AbstractHandler {
 	// can both use String or regexString as scope
 	private class Scope {
 		// ignore . and $ , because they are legal characters in Class name
-		private Pattern isRegex = Pattern.compile("[\\^*?+\\-{}\\[\\]\\|\\\\]");
+		private Pattern isRegex = Pattern.compile("[()\\^*?+\\-{}\\[\\]\\|\\\\]");
 
 		private Pattern regex = null;
 		private String annoScope = null;
