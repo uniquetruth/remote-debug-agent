@@ -18,8 +18,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Use this classloader to load most agent's classes and third-party classes in this agent's lib directory.<br/>
@@ -87,23 +85,20 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 		//scan all jars in classDir again, put self register classes into selfRegisterClasses
 		//exclude some 3rd party jars, increasing load speed
 		Set<String> internal3rdPartyJar = new HashSet<String>();
-		internal3rdPartyJar.add("asm");
-		internal3rdPartyJar.add("gson");
-		internal3rdPartyJar.add("jetty");
-		internal3rdPartyJar.add("javax.servlet");
+		internal3rdPartyJar.add("org/objectweb/asm");
+		internal3rdPartyJar.add("com/google/gson");
+		internal3rdPartyJar.add("org/eclipse/jetty");
+		internal3rdPartyJar.add("javax/servlet");
 		for(File f : d.listFiles()) {
-			if(f.getName().endsWith(".jar") && !containJarname(internal3rdPartyJar, f.getName())) {
-				findSelfRegisterClass(f, selfSuperClassSet);
+			if(f.getName().endsWith(".jar")) {
+				findSelfRegisterClass(f, selfSuperClassSet, internal3rdPartyJar);
 			}
 		}
 	}
 	
-	private boolean containJarname(Set<String> set, String str) {
+	private boolean containInternalJar(Set<String> set, String str) {
 		for(String s : set) {
-			Pattern p = Pattern.compile("^"+s+"-.+?\\.jar$");
-			Matcher m = p.matcher(str);
-			if(m.find()) {
-				//System.out.println(str);
+			if(str.startsWith(s)){
 				return true;
 			}
 		}
@@ -196,7 +191,7 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 		return superClassSet;
 	}
 	
-	private void findSelfRegisterClass(File jarFile, Set<Class<?>> selfSuperClassSet) {
+	private void findSelfRegisterClass(File jarFile, Set<Class<?>> selfSuperClassSet, Set<String> internal3rdPartyJar) {
 		Set<String> superClassNames = new HashSet<String>();
 		for(Class<?> c : selfSuperClassSet) {
 			superClassNames.add(c.getName().replace(".", "/")+".class");
@@ -207,15 +202,17 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 			Enumeration<JarEntry> entries = jFile.entries();
 			while(entries.hasMoreElements()) {
 				JarEntry e = entries.nextElement();
-				if(e.getName().endsWith(".class")
-						&& !superClassNames.contains(e.getName())) {
-					if(containsU8l(superClassNames, loadFromJarEntry(jFile, e))) {
-						Class<?> c = loadClass(e.getName().replace("/", ".").substring(0, e.getName().length()-6));
-						// check if it was a TransformHandler
-						Class<?> handlerClass = loadClass("com.github.rdagent.transformer.TransformHandler");
-						if(handlerClass.isAssignableFrom(c)) {
-							selfRegisterClasses.add(c);
-						}
+				//don't check non-class files, super classes and classes that are used by this project
+				if(!e.getName().endsWith(".class") || superClassNames.contains(e.getName())
+						|| containInternalJar(internal3rdPartyJar, e.getName()) ) {
+					continue;
+				}
+				if(containsU8l(superClassNames, loadFromJarEntry(jFile, e))) {
+					Class<?> c = loadClass(e.getName().replace("/", ".").substring(0, e.getName().length()-6));
+					// check if it was a TransformHandler
+					Class<?> handlerClass = loadClass("com.github.rdagent.transformer.TransformHandler");
+					if(handlerClass.isAssignableFrom(c)) {
+						selfRegisterClasses.add(c);
 					}
 				}
 			}
