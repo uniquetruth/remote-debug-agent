@@ -161,8 +161,8 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 				JarEntry e = entries.nextElement();
 				if(e.getName().endsWith(".class") 
 						&& !"com/github/rdagent/loader/Agent3rdPartyClassloader.class".equals(e.getName())) {
-					if(checkUsingAnno(loadFromJarEntry(agentJar, e), 
-							"Lcom/github/rdagent/annontation/SelfRegister;")) {
+					BufferedInputStream bis = new BufferedInputStream(agentJar.getInputStream(e), 4096);
+					if(checkUsingAnno(bis, "Lcom/github/rdagent/annontation/SelfRegister;")) {
 						Class<?> c = loadClass(e.getName().replace("/", ".").substring(0, e.getName().length()-6));
 						// check annotation formally. can't use c.isAnnotationPresent(SelfRegister.class) here,
 						// because this class's classloader isn't Agent3rdPartyClassloader
@@ -175,6 +175,7 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 							}
 						}
 					}
+					bis.close();
 				}
 			}
 		} catch (IOException | ClassNotFoundException e) {
@@ -207,7 +208,7 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 						|| containInternalJar(internal3rdPartyJar, e.getName()) ) {
 					continue;
 				}
-				if(containsU8l(superClassNames, loadFromJarEntry(jFile, e))) {
+				if(containsU8l(superClassNames, jFile, e)) {
 					Class<?> c = loadClass(e.getName().replace("/", ".").substring(0, e.getName().length()-6));
 					// check if it was a TransformHandler
 					Class<?> handlerClass = loadClass("com.github.rdagent.transformer.TransformHandler");
@@ -229,13 +230,17 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 		}
 	}
 	
-	private boolean containsU8l(Set<String> superClassNames, byte[] classData) throws ClassNotFoundException {
+	private boolean containsU8l(Set<String> superClassNames, JarFile jarFile, JarEntry e) throws ClassNotFoundException, IOException {
+		BufferedInputStream bis = new BufferedInputStream(jarFile.getInputStream(e), 4096);
 		for(String superClassName : superClassNames) {
 			String binaryName = superClassName.substring(0, superClassName.length()-6);
-			if(checkUsingAnno(classData, binaryName)) {
+			bis.mark(10*1024*1024);
+			if(checkUsingAnno(bis, binaryName)) {
 				return true;
 			}
+			bis.reset();
 		}
+		bis.close();
 		return false;
 	}
 	
@@ -373,91 +378,9 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 	 */
 	private boolean checkUsingAnno(byte[] classData, String anno) throws ClassNotFoundException {
 		BufferedInputStream bis = null;
-		byte[] u2 = new byte[2], u3 = new byte[3], u4 = new byte[4], u8 = new byte[8];
 		try {
 			bis = new BufferedInputStream(new ByteArrayInputStream(classData));
-			//magic
-			bis.read(u4);
-			//minor_version
-			bis.read(u2);
-			//major_version
-			bis.read(u2);
-			//cp length
-			bis.read(u2);
-			int cpLength = byteArray2Int(u2);
-			
-			byte[] tag = new byte[1];
-			for(int i=1;i<cpLength;i++) { //CONSTANT_POOL's index starts from 1
-				
-				bis.read(tag);
-				switch(tag[0]) {
-				case 1: //Utf8_info
-					bis.read(u2);
-					int u8l = byteArray2Int(u2);
-					byte[] strByte = new byte[u8l];
-					bis.read(strByte);
-					String str = new String(strByte, "utf-8");
-					//System.out.println(str);
-					if(anno.equals(str)){
-						return true;
-					}
-					break;
-				case 3: //Integer_info
-					bis.read(u4);
-					break;
-				case 4: //Float_info
-					bis.read(u4);
-					break;
-				case 5: //Long_info
-					bis.read(u8);
-					i++; //phantom index
-					break;
-				case 6: //Double_info
-					bis.read(u8);
-					i++; //phantom index
-					break;
-				case 7: //Class_info
-					bis.read(u2);
-					break;
-				case 8: //String_info
-					bis.read(u2);
-					break;
-				case 9: //Fieldref_info
-					bis.read(u4);
-					break;
-				case 10: //Methodref_info
-					bis.read(u4);
-					break;
-				case 11: //InterfaceMethodref_info
-					bis.read(u4);
-					break;
-				case 12: //NameAndType_info
-					bis.read(u4);
-					break;
-				case 15: //MethodHandle_info
-					bis.read(u3);
-					break;
-				case 16: //MethodType_info
-					bis.read(u2);
-					break;
-				case 17: //	Dynamic_info
-					bis.read(u4);
-					break;
-				case 18: //InvokeDynamic_info
-					bis.read(u4);
-					break;
-				case 19: //Module_info
-					bis.read(u2);
-					break;
-				case 20: //Package_info
-					bis.read(u2);
-					break;
-				default:
-					//throw new ClassNotFoundException("unsupported class file structure");
-					//do nothing, don't interrupt loading progress
-					return false;
-				}
-			}
+			return checkUsingAnno(bis, anno);
 		}catch(IOException e) {
 			e.printStackTrace();
 		}finally {
@@ -465,6 +388,95 @@ public class Agent3rdPartyClassloader extends ClassLoader{
 				try {
 					bis.close();
 				} catch (IOException e) {}
+			}
+		}
+		return false;
+	}
+	
+	//just use stream, don't close it
+	//should always read from the start
+	private boolean checkUsingAnno(BufferedInputStream bis, String anno) throws ClassNotFoundException, IOException {
+		byte[] u2 = new byte[2], u3 = new byte[3], u4 = new byte[4], u8 = new byte[8];
+		// magic
+		bis.read(u4);
+		// minor_version
+		bis.read(u2);
+		// major_version
+		bis.read(u2);
+		// cp length
+		bis.read(u2);
+		int cpLength = byteArray2Int(u2);
+
+		byte[] tag = new byte[1];
+		for (int i = 1; i < cpLength; i++) { // CONSTANT_POOL's index starts from 1
+
+			bis.read(tag);
+			switch (tag[0]) {
+			case 1: // Utf8_info
+				bis.read(u2);
+				int u8l = byteArray2Int(u2);
+				byte[] strByte = new byte[u8l];
+				bis.read(strByte);
+				String str = new String(strByte, "utf-8");
+				// System.out.println(str);
+				if (anno.equals(str)) {
+					return true;
+				}
+				break;
+			case 3: // Integer_info
+				bis.read(u4);
+				break;
+			case 4: // Float_info
+				bis.read(u4);
+				break;
+			case 5: // Long_info
+				bis.read(u8);
+				i++; // phantom index
+				break;
+			case 6: // Double_info
+				bis.read(u8);
+				i++; // phantom index
+				break;
+			case 7: // Class_info
+				bis.read(u2);
+				break;
+			case 8: // String_info
+				bis.read(u2);
+				break;
+			case 9: // Fieldref_info
+				bis.read(u4);
+				break;
+			case 10: // Methodref_info
+				bis.read(u4);
+				break;
+			case 11: // InterfaceMethodref_info
+				bis.read(u4);
+				break;
+			case 12: // NameAndType_info
+				bis.read(u4);
+				break;
+			case 15: // MethodHandle_info
+				bis.read(u3);
+				break;
+			case 16: // MethodType_info
+				bis.read(u2);
+				break;
+			case 17: // Dynamic_info
+				bis.read(u4);
+				break;
+			case 18: // InvokeDynamic_info
+				bis.read(u4);
+				break;
+			case 19: // Module_info
+				bis.read(u2);
+				break;
+			case 20: // Package_info
+				bis.read(u2);
+				break;
+			default:
+				// throw new ClassNotFoundException("unsupported class file structure");
+				// do nothing, don't interrupt loading progress
+				return false;
 			}
 		}
 		return false;
