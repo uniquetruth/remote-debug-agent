@@ -8,11 +8,13 @@ import org.objectweb.asm.commons.AdviceAdapter;
 public class DubboClientVisitor extends ClassVisitor {
 
     private String targetMethod = "request";
+    private int dubboVersion;
     private int api;
 
-	public DubboClientVisitor(int api, ClassVisitor classVisitor) {
+	public DubboClientVisitor(int api, ClassVisitor classVisitor, int dubboVersion) {
 		super(api, classVisitor);
 		this.api = api;
+        this.dubboVersion = dubboVersion;
 	}
 
     @Override
@@ -34,10 +36,23 @@ public class DubboClientVisitor extends ClassVisitor {
 		@Override
 		protected void onMethodEnter() {
 			mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            if(dubboVersion==2){
+                mv.visitFieldInsn(Opcodes.GETFIELD, 
+                    "com/alibaba/dubbo/remoting/exchange/support/header/HeaderExchangeClient", 
+                    "channel", 
+                    "Lcom/alibaba/dubbo/remoting/exchange/ExchangeChannel;");
+            }else{
+                mv.visitFieldInsn(Opcodes.GETFIELD, 
+                    "org/apache/dubbo/remoting/exchange/support/header/HeaderExchangeClient", 
+                    "channel", 
+                    "Lorg/apache/dubbo/remoting/exchange/ExchangeChannel;");
+            }
+            mv.visitIntInsn(Opcodes.SIPUSH, dubboVersion);
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-					"com/github/rdagent/transformer/intercepter/DubboClientIntercepter",
-					"bindIP",
-					"(Ljava/lang/Object;)V", false);
+			    "com/github/rdagent/transformer/intercepter/DubboClientIntercepter",
+			    "bindIP",
+			    "(Ljava/lang/Object;Ljava/lang/Object;I)V", false);
 		}
 
     }
