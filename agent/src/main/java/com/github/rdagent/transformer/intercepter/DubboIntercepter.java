@@ -15,6 +15,7 @@ public class DubboIntercepter {
 	public static void bindIP(Object channel) {
 		try {
 			String ip = getDubboIp(channel);
+			System.out.println("dubbo provider get ip : "+ip);
 			
 			if(ip != null && !"".equals(ip) && AgentOptions.isDependIP()) {
 				//ignore non-ip identification situation temporarily

@@ -5,12 +5,14 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+@Ignore
 public class RemoteTest {
 	
 	private static OkHttpClient client;
@@ -96,6 +98,7 @@ public class RemoteTest {
 			      .url("http://127.0.0.1:8080/stopserver")
 			      .build();
 		client.newCall(request).execute();
+		System.out.println("server closed");
 	}
 
 }
