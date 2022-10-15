@@ -12,7 +12,7 @@ import org.objectweb.asm.commons.AdviceAdapter;
  */
 public class DubboVisitor extends ClassVisitor {
 	
-	private String targetMethod = "received";
+	private String targetMethod = "handleRequest";
 	private int api;
 
 	public DubboVisitor(int api, ClassVisitor classVisitor) {
