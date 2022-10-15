@@ -111,6 +111,7 @@ task runWebApp(type: AsyncJavaExec, dependsOn: [jar, testClasses]){
 }
 
 test.dependsOn([cleanTest, runWebApp])
+test.jvmArgs('-javaagent:./build/libs/remote-debug-agent.jar=includes=com.github.rdagent.DubboTest,dependIP=false')
 
 jar.dependsOn(copyJars)
 
