@@ -13,6 +13,7 @@ import org.objectweb.asm.commons.AdviceAdapter;
 public class DubboVisitor extends ClassVisitor {
 	
 	private String targetMethod = "handleRequest";
+	private String targetMethod2 = "telnet";
 	private int api;
 
 	public DubboVisitor(int api, ClassVisitor classVisitor) {
@@ -24,7 +25,7 @@ public class DubboVisitor extends ClassVisitor {
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
 			String[] exceptions) {
 		MethodVisitor mv = cv.visitMethod(access, name, descriptor, signature, exceptions);
-		if(targetMethod.equals(name)){
+		if(targetMethod.equals(name) || targetMethod2.equals(name)){
 			return new BindIpVisitor(api, mv, access, name, descriptor);
 		}
 		return mv;
