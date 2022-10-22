@@ -101,6 +101,9 @@ public class Util {
 	}
 	
 	private static String getCoverageStr(ArrayList<Integer> lineList, boolean[] coverage, boolean isClinit) {
+		if(coverage == null){
+			return "no data to display";
+		}
 		if(coverage.length != lineList.size()*2) {
 			return "maps' line size don't match. lineList.size="+lineList.size()+" coverage.length="+coverage.length;
 		}
