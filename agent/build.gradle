@@ -53,6 +53,8 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     testImplementation 'com.google.code.gson:gson:2.8.9'
     testImplementation 'mysql:mysql-connector-java:5.1.40'
+    testImplementation 'org.apache.dubbo:dubbo-spring-boot-starter:3.1.0'
+    testImplementation 'org.apache.dubbo:dubbo:3.1.0'
 }
 
 task copyJars(type:Copy) {
@@ -109,6 +111,7 @@ task runWebApp(type: AsyncJavaExec, dependsOn: [jar, testClasses]){
 }
 
 test.dependsOn([cleanTest, runWebApp])
+test.jvmArgs('-javaagent:./build/libs/remote-debug-agent.jar=includes=com.github.rdagent.DubboTest,dependIP=false,dubboLocalIP=true')
 
 jar.dependsOn(copyJars)
 

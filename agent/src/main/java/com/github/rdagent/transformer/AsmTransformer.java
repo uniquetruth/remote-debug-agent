@@ -11,13 +11,12 @@ import com.github.rdagent.loader.Agent3rdPartyClassloader;
 import com.github.rdagent.transformer.handler.AppHandler;
 import com.github.rdagent.transformer.handler.PlayHandler;
 import com.github.rdagent.transformer.handler.DefaultServletAdatper;
+import com.github.rdagent.transformer.handler.DubboClientHandler;
 import com.github.rdagent.transformer.handler.DubboHandler;
 import com.github.rdagent.transformer.handler.FeignHandler;
 import com.github.rdagent.transformer.handler.HystrixClientHandler;
-//import com.github.rdagent.transformer.handler.ServletHandler;
 import com.github.rdagent.transformer.handler.SpringRabbitHandler;
 import com.github.rdagent.transformer.handler.SpringSimpleClientHandler;
-//import com.github.rdagent.transformer.handler.Struts2Handler;
 
 public class AsmTransformer implements ClassFileTransformer {
 	
@@ -28,6 +27,7 @@ public class AsmTransformer implements ClassFileTransformer {
 		//register fixed handler
 		registerHandler(new AppHandler());
 		registerHandler(new DubboHandler());
+		registerHandler(new DubboClientHandler());
 		registerHandler(new FeignHandler());
 		registerHandler(new HystrixClientHandler());
 		registerHandler(new SpringSimpleClientHandler());

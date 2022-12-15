@@ -16,12 +16,15 @@ public class DubboHandler extends AbstractHandler {
 	
 	//dubbo 2.X
 	private String dubboChannel2 = "com/alibaba/dubbo/remoting/exchange/support/header/HeaderExchangeHandler";
+	private String telnetChannel2 = "com/alibaba/dubbo/remoting/telnet/support/TelnetHandlerAdapter";
 	//dubbo 3.X
-	private String dubboChannel3 = "org/apache/dubbo/remoting/exchange/support/header/HeaderExchangeHandler";	
+	private String dubboChannel3 = "org/apache/dubbo/remoting/exchange/support/header/HeaderExchangeHandler";
+	private String telnetChannel3 = "org/apache/dubbo/remoting/telnet/support/TelnetHandlerAdapter";
 	
 	@Override
 	public boolean filterClassName(String className) {
-		return dubboChannel2.equals(className) || dubboChannel3.equals(className);
+		return dubboChannel2.equals(className) || dubboChannel3.equals(className)
+		    || telnetChannel2.equals(className) || telnetChannel3.equals(className);
 	}
 
 	@Override

@@ -12,7 +12,8 @@ import org.objectweb.asm.commons.AdviceAdapter;
  */
 public class DubboVisitor extends ClassVisitor {
 	
-	private String targetMethod = "received";
+	private String targetMethod = "handleRequest";
+	private String targetMethod2 = "telnet";
 	private int api;
 
 	public DubboVisitor(int api, ClassVisitor classVisitor) {
@@ -26,6 +27,8 @@ public class DubboVisitor extends ClassVisitor {
 		MethodVisitor mv = cv.visitMethod(access, name, descriptor, signature, exceptions);
 		if(targetMethod.equals(name)){
 			return new BindIpVisitor(api, mv, access, name, descriptor);
+		}else if(targetMethod2.equals(name)){
+            return new TelnetBindIpVisitor(api, mv, access, name, descriptor);
 		}
 		return mv;
 	}
@@ -39,10 +42,15 @@ public class DubboVisitor extends ClassVisitor {
 		@Override
 		protected void onMethodEnter() {
 			mv.visitVarInsn(Opcodes.ALOAD, 1);
+			mv.visitVarInsn(Opcodes.ALOAD, 2);
+			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+					"org/apache/dubbo/remoting/exchange/Request",
+					"getData",
+					"()Ljava/lang/Object;", false);
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 					"com/github/rdagent/transformer/intercepter/DubboIntercepter",
 					"bindIP",
-					"(Ljava/lang/Object;)V", false);
+					"(Ljava/lang/Object;Ljava/lang/Object;)V", false);
 		}
 		
 		@Override
@@ -52,4 +60,24 @@ public class DubboVisitor extends ClassVisitor {
 
 	}
 
+	class TelnetBindIpVisitor extends AdviceAdapter{
+		protected TelnetBindIpVisitor(int api, MethodVisitor methodVisitor, int access, String name, String descriptor) {
+			super(api, methodVisitor, access, name, descriptor);
+		}
+		
+		@Override
+		protected void onMethodEnter() {
+			mv.visitVarInsn(Opcodes.ALOAD, 1);
+			mv.visitInsn(Opcodes.ACONST_NULL);
+			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+					"com/github/rdagent/transformer/intercepter/DubboIntercepter",
+					"bindIP",
+					"(Ljava/lang/Object;Ljava/lang/Object;)V", false);
+		}
+		
+		@Override
+		protected void onMethodExit(int opcode) {
+			mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/github/rdagent/transformer/intercepter/IPmap", "unbindIP", "()V", false);
+		}
+	}
 }

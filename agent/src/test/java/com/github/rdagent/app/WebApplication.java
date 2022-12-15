@@ -2,6 +2,7 @@ package com.github.rdagent.app;
 
 import java.io.PrintStream;
 
+import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @ComponentScan(basePackages = { "com.github.rdagent.app.**" })
 @SpringBootApplication
+@EnableDubbo(scanBasePackages = {"com.github.rdagent.app.dubbo.**"})
 public class WebApplication implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
 
 	public static void main(String[] args) throws Exception {

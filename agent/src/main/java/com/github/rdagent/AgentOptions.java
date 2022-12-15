@@ -35,6 +35,8 @@ public class AgentOptions {
 	private static String commdArgs;
 	//limit of trace list, prevent oom
 	private static int traceMax = Constants.TraceMaxLength;
+	//whether force dubbo client to send local ip to the provider 
+	private static boolean dubboLocalIp = false;
 	//for local java program using
 	private static boolean procTrace = false;
 	private static boolean procTraceTime = false;
@@ -86,6 +88,11 @@ public class AgentOptions {
 		String depIP = getParam(commdArgs, "dependIP=(.+?)(,|$)");
 		if("false".equals(depIP)){
 			dependIP = false;
+		}
+
+		String forceDubboLocalIp = getParam(commdArgs, "dubboLocalIP=(.+?)(,|$)");
+		if("true".equals(forceDubboLocalIp)){
+			dubboLocalIp = true;
 		}
 		
 		try {
@@ -215,6 +222,10 @@ public class AgentOptions {
 	
 	public static List<String[]> getCustomHandlers(){
 		return customHandlers;
+	}
+
+	public static boolean isDubboLocalIp(){
+		return dubboLocalIp;
 	}
 
 }
