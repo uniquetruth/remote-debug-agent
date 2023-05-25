@@ -386,8 +386,10 @@ public class IPmap{
 			}
 		}
 		List<String> sqls = vo.getSqlList();
-		sqls.remove(sqls.size()-1);
-		sqls.add(sql);
+        if(!sqls.isEmpty()){
+		    sqls.remove(sqls.size()-1);
+	        sqls.add(sql);
+        }
 	}
 
 }
