@@ -15,10 +15,12 @@ public class DubboVisitor extends ClassVisitor {
 	private String targetMethod = "handleRequest";
 	private String targetMethod2 = "telnet";
 	private int api;
+    private int dubboVersion;
 
-	public DubboVisitor(int api, ClassVisitor classVisitor) {
+	public DubboVisitor(int api, ClassVisitor classVisitor, int dubboVersion) {
 		super(api, classVisitor);
 		this.api = api;
+        this.dubboVersion = dubboVersion;
 	}
 	
 	@Override
@@ -43,10 +45,17 @@ public class DubboVisitor extends ClassVisitor {
 		protected void onMethodEnter() {
 			mv.visitVarInsn(Opcodes.ALOAD, 1);
 			mv.visitVarInsn(Opcodes.ALOAD, 2);
-			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+            if(dubboVersion==2){
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+					"com/alibaba/dubbo/remoting/exchange/Request",
+					"getData",
+					"()Ljava/lang/Object;", false);
+            }else{
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
 					"org/apache/dubbo/remoting/exchange/Request",
 					"getData",
 					"()Ljava/lang/Object;", false);
+            }
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 					"com/github/rdagent/transformer/intercepter/DubboIntercepter",
 					"bindIP",
