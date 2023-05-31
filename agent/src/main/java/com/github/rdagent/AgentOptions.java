@@ -83,7 +83,6 @@ public class AgentOptions {
                 System.out.println("invalid custom ASM version: " + customAsmV);
             }
         }
-        System.out.println("ASM version: " + Constants.asmApiVersion);
 		
 		outputDir = getParam(commdArgs, "outputdir=(.+?)(,|$)");
 		if(outputDir == null) { //use directory of agent jar as default
