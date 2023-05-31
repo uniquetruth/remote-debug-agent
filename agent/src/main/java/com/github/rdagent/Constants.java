@@ -17,7 +17,7 @@ public class Constants {
 	/**
 	 * version of asm api. 5 is pretty ok, I don't know much.
 	 */
-	public static final int asmApiVersion = Opcodes.ASM5;
+	public static int asmApiVersion = Opcodes.ASM5;
 	
 	/**
 	 * max length of tracing list. used to limit memory cost
@@ -44,5 +44,9 @@ public class Constants {
 	 * for local program, specify if dump coverage raw data
 	 */
 	public static final String procCoverageSwitch = "rdagent.coverage";
+
+    public static void changeAsmVersion(int newVersion){
+        asmApiVersion = newVersion;
+    }
 
 }

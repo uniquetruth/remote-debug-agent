@@ -3,12 +3,14 @@ package com.github.rdagent;
 import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.rdagent.annontation.BothUsing;
+import com.github.rdagent.loader.Agent3rdPartyClassloader;
 import com.github.rdagent.transformer.intercepter.IPmap;
 
 /**
@@ -71,6 +73,17 @@ public class AgentOptions {
 				exScopes.add(temp);
 			}
 		}
+
+        String customAsmV = getParam(commdArgs, "asmVersion=(.+?)(,|$)");
+        if(customAsmV != null) {
+            try {
+                Field f = Agent3rdPartyClassloader.getClassloader().loadClass("org.objectweb.asm.Opcodes").getField(customAsmV);
+                Constants.changeAsmVersion((int)f.get(null));
+            } catch (ReflectiveOperationException e) {
+                System.out.println("invalid custom ASM version: " + customAsmV);
+            }
+        }
+        System.out.println("ASM version: " + Constants.asmApiVersion);
 		
 		outputDir = getParam(commdArgs, "outputdir=(.+?)(,|$)");
 		if(outputDir == null) { //use directory of agent jar as default
