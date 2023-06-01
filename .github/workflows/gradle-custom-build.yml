@@ -31,3 +31,8 @@ jobs:
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
         arguments: -b agent/build.gradle agentTest
+    - name: Artifact Upload
+      uses: actions/upload-artifact@v3
+      with: 
+        name: artifact
+        path: ./agent/build/libs
